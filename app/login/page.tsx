@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +19,7 @@ const Login = () => {
       await login(username, password);
       router.push('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'حصل خطأ في تسجيل الدخول');
+      setError(err.response?.data?.message || 'اليوزرنيم أو الباسورد غلط');
     } finally {
       setLoading(false);
     }
@@ -27,15 +27,59 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <form className="login-card" onSubmit={handleSubmit}>
-        <h1>🏋️ نظام إدارة الجيم</h1>
-        <p className="subtitle">تسجيل دخول الكاشير</p>
+      {/* Background Orbs */}
+      <div className="login-orb login-orb-1" />
+      <div className="login-orb login-orb-2" />
+
+      <form className="login-card" onSubmit={handleSubmit} autoComplete="off">
+        {/* Logo */}
+        <div className="login-logo-wrap">
+          <div className="login-logo-ring" />
+          <div className="login-logo-ring-2" />
+          <div className="login-logo-icon">🏋️</div>
+        </div>
+
+        <div className="login-gym-name">VACUUM GYM</div>
+        <div className="login-subtitle">نظام إدارة الجيم — تسجيل دخول</div>
+
         {error && <div className="error-msg">{error}</div>}
-        <label>اليوزرنيم</label>
-        <input value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
-        <label>الباسورد</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit" disabled={loading}>{loading ? 'جاري الدخول...' : 'دخول'}</button>
+
+        <div className="login-form-group">
+          <label>اليوزرنيم</label>
+          <input
+            className="login-input"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            required
+            autoFocus
+            autoComplete="username"
+            placeholder="أدخل اليوزرنيم"
+          />
+        </div>
+
+        <div className="login-form-group">
+          <label>الباسورد</label>
+          <input
+            className="login-input"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            placeholder="أدخل الباسورد"
+          />
+        </div>
+
+        <button type="submit" className="login-btn" disabled={loading}>
+          {loading ? (
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spinRing 0.8s linear infinite', display: 'inline-block' }} />
+              جاري الدخول...
+            </span>
+          ) : 'ENTER'}
+        </button>
+
+        <div style={{ marginTop: '24px', fontSize: '11px', color: '#2a2a3a', letterSpacing: '1px' }}>VACUUM GYM MANAGEMENT SYSTEM v2.0</div>
       </form>
     </div>
   );
