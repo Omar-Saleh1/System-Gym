@@ -36,7 +36,9 @@ const Login = () => {
         <div className="login-logo-wrap">
           <div className="login-logo-ring" />
           <div className="login-logo-ring-2" />
-          <div className="login-logo-icon">🏋️</div>
+          <div className="login-logo-icon" style={{ background: '#1c1c1e', padding: '12px' }}>
+            <img src="/logo.png" alt="VACUUM GYM" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
         </div>
 
         <div className="login-gym-name">VACUUM GYM</div>

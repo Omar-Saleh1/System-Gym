@@ -47,9 +47,17 @@ const Sidebar = () => {
     <div className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'linear-gradient(135deg, #ff5746 0%, #cc3a2b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', margin: '0 auto 10px', boxShadow: '0 8px 24px rgba(255,87,70,0.3)' }}>
-          🏋️
-        </div>
+        <img
+          src="/logo.png"
+          alt="VACUUM GYM"
+          style={{
+            width: '80px',
+            height: 'auto',
+            display: 'block',
+            margin: '0 auto 8px',
+            filter: 'drop-shadow(0 4px 12px rgba(255,87,70,0.4))'
+          }}
+        />
         <div className="sidebar-gym-name">VACUUM GYM</div>
         <div className="sidebar-gym-tagline">Management System</div>
       </div>
@@ -70,7 +78,7 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <button className="btn-add-member" onClick={() => router.push('/members/new')} style={{ marginBottom: '10px' }}>
+        <button className="btn-add-member" onClick={() => router.push('/members')} style={{ marginBottom: '10px' }}>
           ＋ إضافة عضو جديد
         </button>
         <button className="btn-logout" onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '10px' }}>
