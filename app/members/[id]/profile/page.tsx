@@ -51,6 +51,11 @@ const MemberProfile = () => {
           <h3 style={{ marginBottom: '16px', color: 'var(--primary)' }}>📋 الاشتراك</h3>
           {subscription ? (
             <div>
+              {subscription.status === 'expired' && (
+                <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '8px', padding: '10px', marginBottom: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>
+                  ⚠️ تنبيه: الاشتراك منتهي، الـ QR الخاص بالعضو غير صالح للدخول.
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <span style={valueStyle}>{subscription.plan?.name || 'اشتراك'}</span>
                 <span className={'badge ' + (subscription.status === 'active' ? 'badge-success' : subscription.status === 'frozen' ? 'badge-warning' : 'badge-danger')}>
@@ -58,6 +63,30 @@ const MemberProfile = () => {
                 </span>
               </div>
               <div style={labelStyle}>من: {new Date(subscription.startDate).toLocaleDateString('ar-EG')} — إلى: {new Date(subscription.endDate).toLocaleDateString('ar-EG')}</div>
+              {profile.subscriptionPayment && (
+                <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                    <span style={labelStyle}>إجمالي سعر الاشتراك:</span>
+                    <span style={valueStyle}>{profile.subscriptionPayment.amount} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                    <span style={labelStyle}>المبلغ المدفوع:</span>
+                    <span style={{ ...valueStyle, color: 'var(--success)' }}>{profile.subscriptionPayment.paidAmount} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                    <span style={labelStyle}>المبلغ المتبقي:</span>
+                    <span style={{ ...valueStyle, color: profile.subscriptionPayment.remainingAmount > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                      {profile.subscriptionPayment.remainingAmount} ج.م
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '6px' }}>
+                    <span style={labelStyle}>حالة الدفع:</span>
+                    <span className={'badge ' + (profile.subscriptionPayment.status === 'PAID' ? 'badge-success' : profile.subscriptionPayment.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>
+                      {profile.subscriptionPayment.status === 'PAID' ? 'مدفوع بالكامل' : profile.subscriptionPayment.status === 'PARTIAL' ? 'مدفوع جزئياً' : 'معلق'}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : <div style={{ color: 'var(--text-muted)' }}>لا يوجد اشتراك نشط</div>}
         </div>

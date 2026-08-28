@@ -32,7 +32,7 @@ const Dashboard = () => {
   if (loading) return <div className="page">جاري التحميل...</div>;
 
   const topCards = [
-    { label: 'إيراد النهاردة', value: `${stats?.todayRevenue || 0}`, sub: 'ج.م', icon: <CurrencyDollarIcon /> },
+    { label: 'إيراد النهاردة', value: `${payStats?.todayRevenue?.toLocaleString() || 0}`, sub: 'ج.م', icon: <CurrencyDollarIcon /> },
     { label: 'عمليات بيع النهاردة', value: stats?.todaySalesCount || 0, sub: '', icon: <DocumentTextIcon /> },
     { label: 'إجمالي الأعضاء', value: stats?.totalMembers || 0, sub: '', icon: <UserGroupIcon /> },
     { label: 'اشتراكات نشطة', value: stats?.activeSubscriptions || 0, sub: '', icon: <CheckCircleIcon /> },

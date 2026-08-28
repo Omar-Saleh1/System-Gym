@@ -7,7 +7,14 @@ const Subscriptions = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ memberId: '', planId: '', notes: '' });
+  const [form, setForm] = useState({
+    memberId: '',
+    planId: '',
+    pricePaid: '',
+    paidAmount: '',
+    paymentMethod: 'CASH',
+    notes: ''
+  });
 
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [planForm, setPlanForm] = useState({ name: '', durationInDays: '', price: '', description: '' });
@@ -28,12 +35,40 @@ const Subscriptions = () => {
     loadAll();
   }, []);
 
+  const handlePlanChange = (planId: string) => {
+    const plan = plans.find(p => p._id === planId);
+    setForm({
+      ...form,
+      planId,
+      pricePaid: plan ? String(plan.price) : '',
+      paidAmount: plan ? String(plan.price) : ''
+    });
+  };
+
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage('');
+    
+    const confirmMsg = `هل أنت متأكد من تسجيل الاشتراك بقيمة إجمالية ${form.pricePaid} ج.م ومدفوع ${form.paidAmount} ج.م؟`;
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      await api.post('/subscriptions', form);
-      setForm({ memberId: '', planId: '', notes: '' });
+      await api.post('/subscriptions', {
+        memberId: form.memberId,
+        planId: form.planId,
+        pricePaid: Number(form.pricePaid),
+        paidAmount: Number(form.paidAmount),
+        paymentMethod: form.paymentMethod,
+        notes: form.notes
+      });
+      setForm({
+        memberId: '',
+        planId: '',
+        pricePaid: '',
+        paidAmount: '',
+        paymentMethod: 'CASH',
+        notes: ''
+      });
       setShowForm(false);
       loadAll();
     } catch (err: any) {
@@ -135,12 +170,34 @@ const Subscriptions = () => {
             </div>
             <div>
               <label>الخطة</label>
-              <select value={form.planId} onChange={(e) => setForm({ ...form, planId: e.target.value })} required>
+              <select value={form.planId} onChange={(e) => handlePlanChange(e.target.value)} required>
                 <option value="">اختر خطة</option>
                 {plans.map((p) => <option key={p._id} value={p._id}>{p.name} - {p.price} ج.م ({p.durationInDays} يوم)</option>)}
               </select>
             </div>
+          </div>
+          <div className="form-row">
             <div>
+              <label>المبلغ المطلوب (ج.م)</label>
+              <input type="number" value={form.pricePaid} onChange={(e) => setForm({ ...form, pricePaid: e.target.value })} required min="0" />
+            </div>
+            <div>
+              <label>المبلغ المدفوع (ج.م)</label>
+              <input type="number" value={form.paidAmount} onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} required min="0" />
+            </div>
+            <div>
+              <label>طريقة الدفع</label>
+              <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
+                <option value="CASH">كاش</option>
+                <option value="CARD">بطاقة</option>
+                <option value="BANK_TRANSFER">تحويل بنكي</option>
+                <option value="ONLINE">أونلاين</option>
+                <option value="OTHER">أخرى</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div style={{ flex: 2 }}>
               <label>ملاحظات (مثال: دفع فيزا)</label>
               <input type="text" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="اكتب أي ملاحظات هنا..." className="form-control" />
             </div>

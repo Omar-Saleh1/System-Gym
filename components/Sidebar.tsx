@@ -34,6 +34,7 @@ const Sidebar = () => {
     { href: '/attendance', icon: <QrCodeIcon />, label: 'CHECK-IN' },
     { href: '/payments', icon: <BanknotesIcon />, label: 'PAYMENTS' },
     { href: '/expenses', icon: <BanknotesIcon style={{ color: 'var(--danger)' }} />, label: 'EXPENSES' },
+    { href: '/coaches', icon: <UsersIcon style={{ color: 'var(--primary)' }} />, label: 'COACHES' },
     { href: '/plans', icon: <ClipboardDocumentListIcon />, label: 'PLANS' },
     { href: '/cashier', icon: <ShoppingCartIcon />, label: 'STORE' },
     { href: '/reports', icon: <ChartBarIcon />, label: 'REPORTS' },
