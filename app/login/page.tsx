@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { LOGO_BASE64 } from '../../lib/logoData';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -37,7 +38,7 @@ const Login = () => {
           <div className="login-logo-ring" />
           <div className="login-logo-ring-2" />
           <div className="login-logo-icon">
-            <img src="/logo.png" alt="VG" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+            <img src={LOGO_BASE64} alt="VACUUM GYM" style={{ width: '84px', height: '84px', objectFit: 'contain' }} />
           </div>
         </div>
 

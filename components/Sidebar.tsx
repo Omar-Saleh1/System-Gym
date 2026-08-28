@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+import { LOGO_BASE64 } from '../lib/logoData';
 import {
   Squares2X2Icon,
   UsersIcon,
@@ -48,7 +49,7 @@ const Sidebar = () => {
       {/* Logo */}
       <div className="sidebar-logo">
         <img
-          src="/logo.png"
+          src={LOGO_BASE64}
           alt="VACUUM GYM"
           style={{
             width: '80px',
