@@ -221,13 +221,14 @@ label { font-size: 13px; color: var(--text-muted); display: block; margin-bottom
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff5746 0%, #cc3a2b 100%);
+  background: #161618;
+  border: 1px solid rgba(255, 87, 70, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38px;
+  overflow: hidden;
   animation: logoEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards, pulseGlow 3s ease-in-out 1s infinite;
-  box-shadow: 0 20px 60px rgba(255,87,70,0.35);
+  box-shadow: 0 10px 40px rgba(255,87,70,0.25);
 }
 .login-gym-name {
   font-size: 28px;
