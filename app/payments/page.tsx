@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'payments'>('dashboard');
@@ -131,7 +132,15 @@ const Payments = () => {
     }
   };
 
-  const handleSubmitPayment = async (e: any) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: React.ReactNode;
+    type?: 'danger' | 'success' | 'warning' | 'info';
+    action: () => void;
+  }>({ title: '', message: '', action: () => {} });
+
+  const handleSubmitPayment = (e: any) => {
     e.preventDefault();
     const totalAmount = Number(form.amount);
     const paidAmount = Number(form.paidAmount);
@@ -146,26 +155,35 @@ const Payments = () => {
       return;
     }
 
-    const confirmMsg = `تأكيد تسجيل دفعة مالية بقيمة ${paidAmount} ج.م من أصل ${totalAmount} ج.م؟`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      await api.post('/payments', {
-        memberId: form.memberId,
-        subscriptionId: form.subscriptionId || undefined,
-        amount: totalAmount,
-        paidAmount,
-        paymentMethod: form.paymentMethod,
-        notes: form.notes,
-      });
-      setMessage('✅ تم تسجيل الدفعة بنجاح');
-      setForm({ memberId: '', subscriptionId: '', amount: '', paidAmount: '', paymentMethod: 'CASH', notes: '' });
-      setMemberSubs([]);
-      await loadData();
-      setTimeout(() => setMessage(''), 3000);
-    } catch (err: any) {
-      alert('❌ ' + (err.response?.data?.message || 'حدث خطأ'));
-    }
+    setConfirmConfig({
+      title: 'تأكيد تسجيل الدفعة',
+      type: 'info',
+      message: (
+        <span>
+          هل أنت متأكد من تسجيل دفعة مالية بقيمة <strong className="confirm-highlight">{paidAmount} ج.م</strong> من أصل <strong className="confirm-highlight">{totalAmount} ج.م</strong>؟
+        </span>
+      ),
+      action: async () => {
+        try {
+          await api.post('/payments', {
+            memberId: form.memberId,
+            subscriptionId: form.subscriptionId || undefined,
+            amount: totalAmount,
+            paidAmount,
+            paymentMethod: form.paymentMethod,
+            notes: form.notes,
+          });
+          setMessage('✅ تم تسجيل الدفعة بنجاح');
+          setForm({ memberId: '', subscriptionId: '', amount: '', paidAmount: '', paymentMethod: 'CASH', notes: '' });
+          setMemberSubs([]);
+          await loadData();
+          setTimeout(() => setMessage(''), 3000);
+        } catch (err: any) {
+          alert('❌ ' + (err.response?.data?.message || 'حدث خطأ'));
+        }
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handlePayRemaining = async (payment: any) => {
@@ -186,19 +204,29 @@ const Payments = () => {
     const method = window.prompt("أدخل طريقة الدفع (CASH, CARD, BANK_TRANSFER, ONLINE, OTHER):", "CASH");
     if (method === null) return;
 
-    const confirmMsg = `تأكيد سداد مبلغ بقيمة ${amount} ج.م بطريقة ${method.toUpperCase()}؟`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      await api.post(`/payments/${payment._id}/pay-remaining`, {
-        amountPaid: amount,
-        paymentMethod: method.toUpperCase(),
-      });
-      alert("✅ تم سداد المبلغ بنجاح!");
-      await loadData();
-    } catch (err: any) {
-      alert("❌ فشل السداد: " + (err.response?.data?.message || err.message));
-    }
+    setConfirmConfig({
+      title: 'تأكيد سداد المبلغ المتبقي',
+      type: 'success',
+      message: (
+        <span>
+          هل أنت متأكد من سداد مبلغ بقيمة <strong className="confirm-highlight">{amount} ج.م</strong> بطريقة <strong className="confirm-highlight">{method.toUpperCase()}</strong>؟
+        </span>
+      ),
+      action: async () => {
+        try {
+          await api.post(`/payments/${payment._id}/pay-remaining`, {
+            amountPaid: amount,
+            paymentMethod: method.toUpperCase(),
+          });
+          setMessage("✅ تم سداد المبلغ بنجاح!");
+          await loadData();
+          setTimeout(() => setMessage(''), 3000);
+        } catch (err: any) {
+          alert("❌ فشل السداد: " + (err.response?.data?.message || err.message));
+        }
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const remaining = (Number(form.amount) || 0) - (Number(form.paidAmount) || 0);
@@ -500,6 +528,20 @@ const Payments = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmOpen}
+        type={confirmConfig.type || 'info'}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText="تأكيد"
+        cancelText="إلغاء"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          confirmConfig.action();
+        }}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 };

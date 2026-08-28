@@ -1,12 +1,14 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Subscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [form, setForm] = useState({
     memberId: '',
     planId: '',
@@ -45,13 +47,18 @@ const Subscriptions = () => {
     });
   };
 
-  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubscribeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage('');
-    
-    const confirmMsg = `هل أنت متأكد من تسجيل الاشتراك بقيمة إجمالية ${form.pricePaid} ج.م ومدفوع ${form.paidAmount} ج.م؟`;
-    if (!window.confirm(confirmMsg)) return;
+    if (!form.memberId || !form.planId || !form.pricePaid || !form.paidAmount) {
+      setErrorMessage('جميع الحقول الرئيسية مطلوبة');
+      return;
+    }
+    setConfirmOpen(true);
+  };
 
+  const executeSubscribe = async () => {
+    setConfirmOpen(false);
     try {
       await api.post('/subscriptions', {
         memberId: form.memberId,
@@ -153,7 +160,7 @@ const Subscriptions = () => {
       )}
 
       {showForm && (
-        <form className="form-card" onSubmit={handleSubscribe}>
+        <form className="form-card" onSubmit={handleSubscribeSubmit}>
           {errorMessage && (
             <div style={{ padding: '12px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '16px', textAlign: 'right', fontWeight: 'bold' }}>
               {errorMessage}
@@ -258,6 +265,21 @@ const Subscriptions = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        type="info"
+        title="تأكيد تسجيل الاشتراك"
+        message={
+          <span>
+            هل أنت متأكد من تسجيل الاشتراك بقيمة إجمالية <strong className="confirm-highlight">{form.pricePaid} ج.م</strong> ومدفوع <strong className="confirm-highlight">{form.paidAmount} ج.م</strong>؟
+          </span>
+        }
+        confirmText="تأكيد الاشتراك"
+        cancelText="إلغاء"
+        onConfirm={executeSubscribe}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 };
