@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const isLoginRoute = request.nextUrl.pathname.startsWith('/login');
   const isPublicQrRoute = request.nextUrl.pathname.startsWith('/member/qr');
 
-  if (!token && !isLoginRoute && !isPublicQrRoute && request.nextUrl.pathname !== '/') {
+  if (!token && !isLoginRoute && !isPublicQrRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
