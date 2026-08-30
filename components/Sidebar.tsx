@@ -21,7 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { cashier, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -62,6 +62,23 @@ const Sidebar = () => {
         />
         <div className="sidebar-gym-name">VACUUM GYM</div>
         <div className="sidebar-gym-tagline">Management System</div>
+        
+        {cashier && (
+          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+            <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>{cashier.name}</div>
+            <div style={{ marginTop: '4px' }}>
+              {cashier.role === 'admin' ? (
+                <span className="badge badge-warning" style={{ fontSize: '10px' }}>👑 أدمن (كل الشفتات)</span>
+              ) : cashier.shiftType === 'GIRLS' ? (
+                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 شفت البنات</span>
+              ) : cashier.shiftType === 'BOYS' ? (
+                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شفت الشباب</span>
+              ) : (
+                <span className="badge badge-secondary" style={{ fontSize: '10px' }}>كاشير</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Nav */}

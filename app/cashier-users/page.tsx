@@ -17,6 +17,7 @@ const CashierUsersPage = () => {
     username: '',
     password: '',
     role: 'cashier',
+    shiftType: 'GIRLS',
   });
 
   // Modal State
@@ -76,7 +77,7 @@ const CashierUsersPage = () => {
       if (actionType === 'create') {
         await api.post('/auth/register', form);
         setSuccessMessage(`✅ تم إنشاء حساب الكاشير (${form.name}) بنجاح!`);
-        setForm({ name: '', username: '', password: '', role: 'cashier' });
+        setForm({ name: '', username: '', password: '', role: 'cashier', shiftType: 'GIRLS' });
         await loadCashiers();
       } else if (actionType === 'toggleActive' && selectedCashier) {
         const nextActiveState = !selectedCashier.active;
@@ -161,10 +162,19 @@ const CashierUsersPage = () => {
           <div>
             <label>الصلاحية</label>
             <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
-              <option value="cashier">كاشير (صلاحيات عادية)</option>
-              <option value="admin">أدمن (صلاحيات كاملة)</option>
+              <option value="cashier">كاشير (صلاحيات شفت)</option>
+              <option value="admin">أدمن (صلاحيات كاملة لكل الشفتات)</option>
             </select>
           </div>
+          {form.role === 'cashier' && (
+            <div>
+              <label>الشفت المخصص (Shift)</label>
+              <select value={form.shiftType} onChange={e => setForm({ ...form, shiftType: e.target.value })}>
+                <option value="GIRLS">🌸 شفت البنات (GIRLS)</option>
+                <option value="BOYS">🏋️‍♂️ شفت الشباب (BOYS)</option>
+              </select>
+            </div>
+          )}
         </div>
 
         <button type="submit" style={{ marginTop: '8px' }}>
@@ -186,6 +196,7 @@ const CashierUsersPage = () => {
                 <th>الاسم</th>
                 <th>اسم المستخدم</th>
                 <th>الصلاحية</th>
+                <th>الشفت</th>
                 <th>الحالة</th>
                 <th>تاريخ الإنشاء</th>
                 <th style={{ textAlign: 'center' }}>الإجراءات</th>
@@ -200,6 +211,17 @@ const CashierUsersPage = () => {
                     <span className={`badge ${c.role === 'admin' ? 'badge-warning' : 'badge-secondary'}`}>
                       {c.role === 'admin' ? '👑 أدمن' : '👤 كاشير'}
                     </span>
+                  </td>
+                  <td>
+                    {c.role === 'admin' ? (
+                      <span className="badge badge-warning">🌐 كل الشفتات</span>
+                    ) : c.shiftType === 'GIRLS' ? (
+                      <span className="badge badge-secondary" style={{ color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 بنات</span>
+                    ) : c.shiftType === 'BOYS' ? (
+                      <span className="badge badge-secondary" style={{ color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شباب</span>
+                    ) : (
+                      <span className="badge badge-secondary">غير محدد</span>
+                    )}
                   </td>
                   <td>
                     <span className={`badge ${c.active !== false ? 'badge-success' : 'badge-danger'}`}>
