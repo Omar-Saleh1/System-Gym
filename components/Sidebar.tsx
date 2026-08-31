@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,28 @@ const Sidebar = () => {
   const { cashier, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert('📱 لتنزيل التطبيق على الموبايل:\n\n• على أندرويد (Chrome): اضغط 3 نقاط بأعلى المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).\n• على آيفون (Safari): اضغط زر المشاركة ⎋ بأسفل الشاشة ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).');
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -97,6 +119,13 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="sidebar-footer">
+        <button
+          className="btn-add-member"
+          onClick={handleInstallApp}
+          style={{ marginBottom: '8px', background: 'linear-gradient(135deg, rgba(34,197,94,0.2) 0%, rgba(34,197,94,0.1) 100%)', borderColor: 'rgba(34,197,94,0.3)', color: '#22c55e' }}
+        >
+          📱 تثبيت تطبيق الموبايل
+        </button>
         <button className="btn-add-member" onClick={() => router.push('/members')} style={{ marginBottom: '10px' }}>
           ＋ إضافة عضو جديد
         </button>

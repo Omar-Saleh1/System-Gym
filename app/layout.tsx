@@ -18,6 +18,12 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: 'Vacuum Gym | نظام إدارة الجيم',
   description: 'VACUUM GYM — Management System',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Vacuum Gym',
+  },
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',
