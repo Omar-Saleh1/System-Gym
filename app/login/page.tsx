@@ -17,10 +17,14 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       router.push('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'اليوزرنيم أو الباسورد غلط');
+      if (!err.response) {
+        setError('تعذر الاتصال بالسيرفر (جاري إيقاظ الخدمة)... اضغط ENTER للمحاولة مرة أخرى');
+      } else {
+        setError(err.response?.data?.message || 'اليوزرنيم أو الباسورد غلط');
+      }
     } finally {
       setLoading(false);
     }
