@@ -5,17 +5,19 @@ import MemberQRModal from '../../components/MemberQRModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
-const emptyForm = { name: '', phone: '', email: '', gender: 'male', address: '', notes: '' };
+const emptyForm = { name: '', phone: '', email: '', gender: 'male', address: '', notes: '', shiftType: 'GIRLS' };
 
 const Members = () => {
+  const { cashier } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [qrMember, setQrMember] = useState<any>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null); // { id, name }
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
@@ -35,7 +37,6 @@ const Members = () => {
     e.preventDefault();
     setErrorMessage('');
 
-    // Frontend Validations
     if (form.name.trim().length < 3) {
       setErrorMessage('الاسم يجب أن يكون مكون من 3 حروف على الأقل');
       return;
@@ -68,7 +69,6 @@ const Members = () => {
         setEditingId(null);
         setShowForm(false);
         loadMembers(search);
-        // Open the QR Modal for the newly created member!
         setQrMember(data);
       }
     } catch (err: any) {
@@ -78,7 +78,15 @@ const Members = () => {
   };
 
   const handleEdit = (m: any) => {
-    setForm({ name: m.name, phone: m.phone, email: m.email || '', gender: m.gender, address: m.address || '', notes: m.notes || '' });
+    setForm({
+      name: m.name,
+      phone: m.phone,
+      email: m.email || '',
+      gender: m.gender,
+      address: m.address || '',
+      notes: m.notes || '',
+      shiftType: m.shiftType || 'GIRLS',
+    });
     setEditingId(m._id);
     setErrorMessage('');
     setShowForm(true);
@@ -129,6 +137,15 @@ const Members = () => {
                 <option value="female">أنثى</option>
               </select>
             </div>
+            {cashier?.role === 'admin' && (
+              <div>
+                <label>الشفت (Admin Only)</label>
+                <select value={form.shiftType} onChange={(e) => setForm({ ...form, shiftType: e.target.value })}>
+                  <option value="GIRLS">🌸 شفت البنات (GIRLS)</option>
+                  <option value="BOYS">🏋️‍♂️ شفت الشباب (BOYS)</option>
+                </select>
+              </div>
+            )}
           </div>
           <label>العنوان</label>
           <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
@@ -150,6 +167,7 @@ const Members = () => {
               <th>الاسم</th>
               <th>الموبايل</th>
               <th>النوع</th>
+              <th>الشفت</th>
               <th>تاريخ الانضمام</th>
               <th>إجراءات</th>
             </tr>
@@ -157,9 +175,18 @@ const Members = () => {
           <tbody>
             {members.map((m) => (
               <tr key={m._id}>
-                <td>{m.name}</td>
+                <td style={{ fontWeight: 'bold' }}>{m.name}</td>
                 <td>{m.phone}</td>
                 <td>{m.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+                <td>
+                  {m.shiftType === 'GIRLS' ? (
+                    <span className="badge badge-secondary" style={{ color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 بنات</span>
+                  ) : m.shiftType === 'BOYS' ? (
+                    <span className="badge badge-secondary" style={{ color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شباب</span>
+                  ) : (
+                    <span className="badge badge-warning" style={{ fontSize: '10px' }}>⚠️ غير محدد</span>
+                  )}
+                </td>
                 <td>{new Date(m.createdAt).toLocaleDateString('ar-EG')}</td>
                 <td>
                   <button className="btn-small" onClick={() => router.push(`/members/${m._id}/profile`)}>البروفايل</button>
@@ -175,7 +202,7 @@ const Members = () => {
               </tr>
             ))}
             {members.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center' }}>مفيش أعضاء لسه</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center' }}>مفيش أعضاء لسه</td></tr>
             )}
           </tbody>
         </table>
