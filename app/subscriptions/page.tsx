@@ -98,6 +98,16 @@ const Subscriptions = () => {
     }
   };
 
+  const handleDeleteSubscription = async (id: string, memberName?: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف اشتراك العضو "${memberName || ''}"؟`)) return;
+    try {
+      await api.delete(`/subscriptions/${id}`);
+      loadAll();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'فشل حذف الاشتراك');
+    }
+  };
+
   const openEditModal = (s: any) => {
     setEditSub(s);
     const endDateLocal = s.endDate ? new Date(s.endDate).toISOString().split('T')[0] : '';
@@ -300,9 +310,10 @@ const Subscriptions = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button className="btn-small" onClick={() => openEditModal(s)} style={{ background: '#8b5cf6', color: '#fff' }}>تعديل</button>
-                      {s.status === 'active' && !expired && <button className="btn-small" onClick={() => handleFreeze(s._id)} style={{ background: '#3b82f6', color: '#fff' }}>تجميد</button>}
-                      {s.status === 'frozen' && <button className="btn-small" onClick={() => handleUnfreeze(s._id)} style={{ background: '#22c55e', color: '#fff' }}>تشغيل</button>}
+                      <button className="btn-small" onClick={() => openEditModal(s)} style={{ background: '#8b5cf6', color: '#fff' }}>✏️ تعديل</button>
+                      {s.status === 'active' && !expired && <button className="btn-small" onClick={() => handleFreeze(s._id)} style={{ background: '#3b82f6', color: '#fff' }}>❄️ تجميد</button>}
+                      {s.status === 'frozen' && <button className="btn-small" onClick={() => handleUnfreeze(s._id)} style={{ background: '#22c55e', color: '#fff' }}>🔥 تشغيل</button>}
+                      <button className="btn-small btn-danger" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
                     </div>
                   </td>
                 </tr>
