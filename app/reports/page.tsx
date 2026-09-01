@@ -86,19 +86,26 @@ const DailyChart = ({ data }: { data: { day: number; income: number; expense: nu
   );
 };
 
+import { useAuth } from '../../context/AuthContext';
+
 // ─── Daily Report Panel ───────────────────────────────────────────────────────
 const DailyReportPanel = () => {
+  const { cashier } = useAuth();
   const todayStr = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(todayStr);
+  const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const loadDailyReport = async (d: string) => {
+  const loadDailyReport = async (d: string, sFilter?: string) => {
     try {
       setLoading(true);
       setError('');
-      const { data } = await api.get('/reports/daily', { params: { date: d } });
+      const targetShift = sFilter !== undefined ? sFilter : shiftFilter;
+      const { data } = await api.get('/reports/daily', {
+        params: { date: d, shiftType: targetShift || undefined }
+      });
       setReport(data.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'حدث خطأ');
@@ -107,19 +114,37 @@ const DailyReportPanel = () => {
     }
   };
 
-  // Auto-load today's report on mount
-  useEffect(() => { loadDailyReport(todayStr); }, []);
+  useEffect(() => { loadDailyReport(todayStr); }, [shiftFilter]);
 
   return (
     <div>
-      {/* Date Picker */}
+      {/* Date & Shift Picker */}
       <div className="form-card" style={{ marginBottom: '20px' }}>
-        <h3 style={{ marginBottom: '12px' }}>اختار اليوم</h3>
+        <h3 style={{ marginBottom: '12px' }}>فلترة التقرير اليومي</h3>
         <div className="form-row" style={{ alignItems: 'flex-end' }}>
           <div>
             <label>التاريخ</label>
             <input type="date" value={date} max={todayStr} onChange={e => setDate(e.target.value)} />
           </div>
+
+          {cashier?.role === 'admin' ? (
+            <div>
+              <label>الشفت</label>
+              <select value={shiftFilter} onChange={e => { setShiftFilter(e.target.value); loadDailyReport(date, e.target.value); }}>
+                <option value="">🌐 جميع الشفتات</option>
+                <option value="GIRLS">🌸 شفت البنات</option>
+                <option value="BOYS">🏋️‍♂️ شفت الشباب</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label>الشفت الحالي</label>
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
+                {cashier?.shiftType === 'GIRLS' ? '🌸 شفت البنات' : cashier?.shiftType === 'BOYS' ? '🏋️‍♂️ شفت الشباب' : 'كاشير'}
+              </div>
+            </div>
+          )}
+
           <div>
             <button onClick={() => loadDailyReport(date)} disabled={loading}>
               {loading ? 'جاري التحميل...' : '🔍 عرض التقرير'}
@@ -139,6 +164,17 @@ const DailyReportPanel = () => {
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <h2 style={{ margin: 0, color: 'var(--primary)' }}>تقرير يوم {new Date(report.date + 'T12:00:00').toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h2>
+            {report.shiftType ? (
+              <div style={{ marginTop: '6px' }}>
+                <span className="badge badge-secondary" style={{ fontSize: '12px', color: report.shiftType === 'GIRLS' ? '#ec4899' : '#3b82f6' }}>
+                  {report.shiftType === 'GIRLS' ? '🌸 شفت البنات' : '🏋️‍♂️ شفت الشباب'}
+                </span>
+              </div>
+            ) : (
+              <div style={{ marginTop: '6px' }}>
+                <span className="badge badge-secondary" style={{ fontSize: '12px' }}>🌐 جميع الشفتات</span>
+              </div>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -357,18 +393,23 @@ const DailyReportPanel = () => {
 
 // ─── Monthly Report Panel ─────────────────────────────────────────────────────
 const MonthlyReportPanel = () => {
+  const { cashier } = useAuth();
   const now = new Date();
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const runReport = async () => {
+  const runReport = async (sFilter?: string) => {
     try {
       setLoading(true);
       setError('');
-      const { data } = await api.get('/reports/monthly', { params: { year, month } });
+      const targetShift = sFilter !== undefined ? sFilter : shiftFilter;
+      const { data } = await api.get('/reports/monthly', {
+        params: { year, month, shiftType: targetShift || undefined }
+      });
       setReport(data.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'حدث خطأ أثناء جلب التقرير');
@@ -381,7 +422,7 @@ const MonthlyReportPanel = () => {
     <div>
       {/* Picker */}
       <div className="form-card" style={{ marginBottom: '24px' }}>
-        <h3 style={{ marginBottom: '14px' }}>اختار الشهر والسنة</h3>
+        <h3 style={{ marginBottom: '14px' }}>فلترة التقرير الشهري</h3>
         <div className="form-row" style={{ alignItems: 'flex-end' }}>
           <div>
             <label>السنة</label>
@@ -397,8 +438,27 @@ const MonthlyReportPanel = () => {
               ))}
             </select>
           </div>
+
+          {cashier?.role === 'admin' ? (
+            <div>
+              <label>الشفت</label>
+              <select value={shiftFilter} onChange={e => { setShiftFilter(e.target.value); runReport(e.target.value); }}>
+                <option value="">🌐 جميع الشفتات</option>
+                <option value="GIRLS">🌸 شفت البنات</option>
+                <option value="BOYS">🏋️‍♂️ شفت الشباب</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label>الشفت الحالي</label>
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>
+                {cashier?.shiftType === 'GIRLS' ? '🌸 شفت البنات' : cashier?.shiftType === 'BOYS' ? '🏋️‍♂️ شفت الشباب' : 'كاشير'}
+              </div>
+            </div>
+          )}
+
           <div>
-            <button onClick={runReport} disabled={loading}>
+            <button onClick={() => runReport()} disabled={loading}>
               {loading ? 'جاري التحميل...' : '🔍 عرض التقرير'}
             </button>
           </div>
@@ -412,7 +472,16 @@ const MonthlyReportPanel = () => {
             <h2 style={{ margin: 0, color: 'var(--primary)' }}>
               تقرير شهر {ARABIC_MONTHS[report.period.month]} {report.period.year}
             </h2>
-            <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>{report.period.daysInMonth} يوم</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
+              {report.period.daysInMonth} يوم
+              {report.shiftType ? (
+                <span className="badge badge-secondary" style={{ marginRight: '8px', fontSize: '12px', color: report.shiftType === 'GIRLS' ? '#ec4899' : '#3b82f6' }}>
+                  {report.shiftType === 'GIRLS' ? '🌸 شفت البنات' : '🏋️‍♂️ شفت الشباب'}
+                </span>
+              ) : (
+                <span className="badge badge-secondary" style={{ marginRight: '8px', fontSize: '12px' }}>🌐 جميع الشفتات</span>
+              )}
+            </div>
           </div>
 
           {/* Summary */}
