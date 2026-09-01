@@ -24,6 +24,7 @@ const Subscriptions = () => {
     durationInDays: '',
     sessionsLimit: '',
     subscriptionType: 'days',
+    shiftType: 'BOTH',
     price: '',
     description: ''
   });
@@ -72,14 +73,29 @@ const Subscriptions = () => {
     e.preventDefault();
     setErrorMessage('');
     try {
-      const payload: any = { name: planForm.name, subscriptionType: planForm.subscriptionType, price: Number(planForm.price), description: planForm.description };
+      const payload: any = {
+        name: planForm.name,
+        subscriptionType: planForm.subscriptionType,
+        shiftType: planForm.shiftType,
+        price: Number(planForm.price),
+        description: planForm.description
+      };
       if (planForm.subscriptionType === 'sessions') { payload.sessionsLimit = Number(planForm.sessionsLimit); payload.durationInDays = 30; }
       else { payload.durationInDays = Number(planForm.durationInDays); payload.sessionsLimit = 0; }
       await api.post('/subscriptions/plans', payload);
-      setPlanForm({ name: '', durationInDays: '', sessionsLimit: '', subscriptionType: 'days', price: '', description: '' });
-      setShowPlanForm(false);
+      setPlanForm({ name: '', durationInDays: '', sessionsLimit: '', subscriptionType: 'days', shiftType: 'BOTH', price: '', description: '' });
       loadAll();
     } catch (err: any) { setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء حفظ الخطة'); }
+  };
+
+  const handleDeletePlan = async (id: string, name: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف الخطة "${name}"؟`)) return;
+    try {
+      await api.delete(`/subscriptions/plans/${id}`);
+      loadAll();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'فشل حذف الخطة');
+    }
   };
 
   const openEditModal = (s: any) => {
@@ -109,7 +125,7 @@ const Subscriptions = () => {
     <div className="page">
       <div className="page-header">
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => { setShowPlanForm(!showPlanForm); setErrorMessage(''); }} className="btn-secondary">{showPlanForm ? 'إلغاء' : '+ خطة جديدة'}</button>
+          <button onClick={() => { setShowPlanForm(!showPlanForm); setErrorMessage(''); }} className="btn-secondary">{showPlanForm ? 'إغلاق إدارة الخطط' : '📋 إدارة الخطط'}</button>
           <button onClick={() => { setShowForm(!showForm); setErrorMessage(''); }}>{showForm ? 'إلغاء' : '+ اشتراك جديد'}</button>
         </div>
         <div>
@@ -119,31 +135,88 @@ const Subscriptions = () => {
       </div>
 
       {showPlanForm && (
-        <form className="form-card" onSubmit={handleAddPlan}>
-          {errorMessage && <div style={{ padding: '12px 20px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '16px', textAlign: 'right', fontWeight: 'bold' }}>{errorMessage}</div>}
-          <h3>خطة اشتراك جديدة</h3>
-          <div className="form-row">
-            <div><label>اسم الخطة</label><input value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} required /></div>
-            <div>
-              <label>نوع الاشتراك</label>
-              <select value={planForm.subscriptionType} onChange={(e) => setPlanForm({ ...planForm, subscriptionType: e.target.value })}>
-                <option value="days">بالأيام</option>
-                <option value="sessions">بالحصص</option>
-              </select>
+        <div className="form-card" style={{ marginBottom: '24px' }}>
+          <form onSubmit={handleAddPlan}>
+            {errorMessage && <div style={{ padding: '12px 20px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '16px', textAlign: 'right', fontWeight: 'bold' }}>{errorMessage}</div>}
+            <h3>إضافة خطة اشتراك جديدة</h3>
+            <div className="form-row">
+              <div><label>اسم الخطة</label><input value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} required /></div>
+              <div>
+                <label>نوع الاشتراك</label>
+                <select value={planForm.subscriptionType} onChange={(e) => setPlanForm({ ...planForm, subscriptionType: e.target.value })}>
+                  <option value="days">بالأيام</option>
+                  <option value="sessions">بالحصص</option>
+                </select>
+              </div>
+              <div>
+                <label>المخصص لـ (الشفت)</label>
+                <select value={planForm.shiftType} onChange={(e) => setPlanForm({ ...planForm, shiftType: e.target.value })}>
+                  <option value="BOTH">🌐 كل الشفتات (بنات وشباب)</option>
+                  <option value="GIRLS">🌸 شفت البنات فقط</option>
+                  <option value="BOYS">🏋️‍♂️ شفت الشباب فقط</option>
+                </select>
+              </div>
+              {planForm.subscriptionType === 'days'
+                ? <div><label>المدة (أيام)</label><input type="number" value={planForm.durationInDays} onChange={(e) => setPlanForm({ ...planForm, durationInDays: e.target.value })} required min="1" /></div>
+                : <div><label>عدد الحصص</label><input type="number" value={planForm.sessionsLimit} onChange={(e) => setPlanForm({ ...planForm, sessionsLimit: e.target.value })} required min="1" placeholder="مثال: 12" /></div>
+              }
+              <div><label>السعر (ج.م)</label><input type="number" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })} required min="0" /></div>
             </div>
-            {planForm.subscriptionType === 'days'
-              ? <div><label>المدة (أيام)</label><input type="number" value={planForm.durationInDays} onChange={(e) => setPlanForm({ ...planForm, durationInDays: e.target.value })} required min="1" /></div>
-              : <div><label>عدد الحصص</label><input type="number" value={planForm.sessionsLimit} onChange={(e) => setPlanForm({ ...planForm, sessionsLimit: e.target.value })} required min="1" placeholder="مثال: 12" /></div>
-            }
-            <div><label>السعر (ج.م)</label><input type="number" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })} required min="0" /></div>
+            {planForm.subscriptionType === 'sessions' && (
+              <div style={{ padding: '10px 14px', background: 'rgba(59,130,246,0.1)', borderRadius: '8px', marginBottom: '12px', fontSize: '13px', color: '#60a5fa', textAlign: 'right' }}>
+                اشتراك الحصص: تاريخ الانتهاء سيكون <strong>30 يوم</strong> من تاريخ الاشتراك، وينتهي تلقائياً عند استهلاك كل الحصص.
+              </div>
+            )}
+            <button type="submit">حفظ الخطة الجديدة</button>
+          </form>
+
+          {/* List of existing plans with Delete button */}
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+            <h4 style={{ marginBottom: '14px', color: '#fff' }}>📋 الخطط الحالية المتاحة ({plans.length})</h4>
+            {plans.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '12px' }}>لا توجد خطط حتى الآن</div>
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>اسم الخطة</th>
+                      <th>الشفت المخصص</th>
+                      <th>النوع</th>
+                      <th>المدة / الحصص</th>
+                      <th>السعر</th>
+                      <th style={{ textAlign: 'center' }}>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {plans.map((p) => (
+                      <tr key={p._id}>
+                        <td style={{ fontWeight: 'bold' }}>{p.name}</td>
+                        <td>
+                          {p.shiftType === 'GIRLS' ? (
+                            <span className="badge badge-secondary" style={{ color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 شفت البنات</span>
+                          ) : p.shiftType === 'BOYS' ? (
+                            <span className="badge badge-secondary" style={{ color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شفت الشباب</span>
+                          ) : (
+                            <span className="badge badge-secondary">🌐 كل الشفتات</span>
+                          )}
+                        </td>
+                        <td>{p.subscriptionType === 'sessions' ? '🏋️ حصص' : '📅 أيام'}</td>
+                        <td>{p.subscriptionType === 'sessions' ? `${p.sessionsLimit || 0} حصة` : `${p.durationInDays || 0} يوم`}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{p.price} ج.م</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button className="btn-small btn-danger" onClick={() => handleDeletePlan(p._id, p.name)}>
+                            🗑️ حذف الخطة
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          {planForm.subscriptionType === 'sessions' && (
-            <div style={{ padding: '10px 14px', background: 'rgba(59,130,246,0.1)', borderRadius: '8px', marginBottom: '12px', fontSize: '13px', color: '#60a5fa', textAlign: 'right' }}>
-              اشتراك الحصص: تاريخ الانتهاء سيكون <strong>30 يوم</strong> من تاريخ الاشتراك، وينتهي تلقائياً عند استهلاك كل الحصص.
-            </div>
-          )}
-          <button type="submit">حفظ الخطة</button>
-        </form>
+        </div>
       )}
 
       {showForm && (
