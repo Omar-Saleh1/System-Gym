@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import CameraQRScanner from '../../components/CameraQRScanner';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Attendance = () => {
   const [records, setRecords] = useState<any[]>([]);
@@ -11,6 +12,7 @@ const Attendance = () => {
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCamera, setShowCamera] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [scanValue, setScanValue] = useState('');
   const [scanResult, setScanResult] = useState<any>(null);
@@ -60,11 +62,26 @@ const Attendance = () => {
 
   const handleManualCheckin = async () => {
     if (!selectedMember) return;
-    await api.post('/attendance/checkin', { memberId: selectedMember });
-    setMessage('✅ تم تسجيل الحضور');
-    setSelectedMember('');
-    loadData();
-    setTimeout(() => setMessage(''), 3000);
+    try {
+      await api.post('/attendance/checkin', { memberId: selectedMember });
+      setMessage('✅ تم تسجيل الحضور بنجاح');
+      setSelectedMember('');
+      loadData();
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || '❌ فشل تسجيل الحضور');
+    }
+    setTimeout(() => setMessage(''), 4000);
+  };
+
+  const confirmDeleteAttendance = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/attendance/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      loadData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'فشل حذف سجل الحضور');
+    }
   };
 
   const handleCheckout = async (memberId: string) => {
@@ -201,10 +218,17 @@ const Attendance = () => {
                     <td>{formatTime(r.checkInTime)}</td>
                     <td>{formatTime(r.checkOutTime)}</td>
                     <td style={{ textAlign: 'center' }}>
-                      {!r.checkOutTime && r.member && (
-                        <button className="btn-small" onClick={() => handleCheckout(r.member._id)}>تسجيل انصراف</button>
-                      )}
-                      {r.checkOutTime && <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>مكتمل</span>}
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                        {!r.checkOutTime && r.member && (
+                          <button className="btn-3d btn-3d-freeze" onClick={() => handleCheckout(r.member._id)}>تسجيل انصراف</button>
+                        )}
+                        <button
+                          className="btn-3d btn-3d-delete"
+                          onClick={() => setDeleteTarget({ id: r._id, name: r.member?.name || 'العضو' })}
+                        >
+                          🗑️ حذف الحضور
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -332,6 +356,17 @@ const Attendance = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        type="danger"
+        title="تأكيد حذف الحضور"
+        message={`هل أنت متأكد من حذف سجل حضور العضو "${deleteTarget?.name || ''}" اليوم؟`}
+        confirmText="نعم، احذف الحضور"
+        cancelText="إلغاء"
+        onConfirm={confirmDeleteAttendance}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 };
