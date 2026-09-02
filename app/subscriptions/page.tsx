@@ -92,7 +92,7 @@ const Subscriptions = () => {
     open: boolean;
     type?: 'danger' | 'success' | 'warning' | 'info';
     title: string;
-    message: string | React.ReactNode;
+    message: string;
     confirmText?: string;
     cancelText?: string | null;
     onConfirm: () => void;
@@ -123,7 +123,7 @@ const Subscriptions = () => {
       open: true,
       type: 'danger',
       title: 'تأكيد حذف الخطة',
-      message: <span>هل أنت متأكد من حذف الخطة <strong className="confirm-highlight">"{name}"</strong>؟</span>,
+      message: `هل أنت متأكد من حذف الخطة "${name}"؟`,
       confirmText: 'حذف الخطة',
       cancelText: 'إلغاء',
       onConfirm: async () => {
@@ -144,7 +144,7 @@ const Subscriptions = () => {
       open: true,
       type: 'danger',
       title: 'تأكيد حذف الاشتراك',
-      message: <span>هل أنت متأكد من حذف اشتراك العضو <strong className="confirm-highlight">"{memberName || ''}"</strong> نهائياً وتصفية بياناته المالية؟</span>,
+      message: `هل أنت متأكد من حذف اشتراك العضو "${memberName || ''}" نهائياً وتصفية بياناته المالية؟`,
       confirmText: 'نعم، حذف الاشتراك',
       cancelText: 'إلغاء',
       onConfirm: async () => {
@@ -414,6 +414,17 @@ const Subscriptions = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={modalConfig.open}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={modalConfig.onCancel}
+      />
     </div>
   );
 };
