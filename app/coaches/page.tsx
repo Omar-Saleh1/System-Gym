@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const CoachesAndSalaries = () => {
   const [activeTab, setActiveTab] = useState<'coaches' | 'salaries'>('coaches');
@@ -9,6 +10,37 @@ const CoachesAndSalaries = () => {
   const [salaries, setSalaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+
+  // Confirm Modal state
+  const [confirmConfig, setConfirmConfig] = useState<{
+    open: boolean;
+    type?: 'danger' | 'success' | 'warning' | 'info';
+    title: string;
+    message: string | React.ReactNode;
+    confirmText?: string;
+    cancelText?: string | null;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const closeModal = () => setConfirmConfig(prev => ({ ...prev, open: false }));
+
+  const showAlertModal = (title: string, msg: string, type: 'danger' | 'success' | 'warning' | 'info' = 'warning') => {
+    setConfirmConfig({
+      open: true,
+      type,
+      title,
+      message: msg,
+      confirmText: 'حسناً',
+      cancelText: null,
+      onConfirm: closeModal,
+    });
+  };
 
   // Coach form state
   const [coachForm, setCoachForm] = useState({ name: '', salary: '' });
@@ -46,7 +78,7 @@ const CoachesAndSalaries = () => {
     e.preventDefault();
     const salary = Number(coachForm.salary);
     if (salary < 0) {
-      alert('الراتب لا يمكن أن يكون سالباً');
+      showAlertModal('تنبيـه', 'الراتب لا يمكن أن يكون سالباً', 'warning');
       return;
     }
 
@@ -60,7 +92,7 @@ const CoachesAndSalaries = () => {
       await loadData();
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
-      alert('❌ ' + (err.response?.data?.message || 'حدث خطأ'));
+      showAlertModal('خطأ', err.response?.data?.message || 'حدث خطأ أثناء إضافة الكابتن', 'danger');
     }
   };
 
@@ -80,52 +112,72 @@ const CoachesAndSalaries = () => {
     const paidAmount = Number(salaryForm.paidAmount);
 
     if (totalSalary < 0 || paidAmount < 0) {
-      alert('المبالغ المالية لا يمكن أن تكون سالبة');
+      showAlertModal('تنبيـه', 'المبالغ المالية لا يمكن أن تكون سالبة', 'warning');
       return;
     }
 
     if (paidAmount > totalSalary) {
-      alert('المبلغ المدفوع لا يمكن أن يتجاوز الراتب الكلي');
+      showAlertModal('تنبيـه', 'المبلغ المدفوع لا يمكن أن يتجاوز الراتب الكلي', 'warning');
       return;
     }
 
-    const confirmMsg = `تأكيد صرف راتب بقيمة ${paidAmount} ج.م للكابتن المحدد؟`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      await api.post('/coaches/salaries', {
-        coachId: salaryForm.coachId,
-        month: salaryForm.month,
-        salaryAmount: totalSalary,
-        paidAmount,
-        paymentMethod: salaryForm.paymentMethod,
-        notes: salaryForm.notes
-      });
-      setMessage('✅ تم تسجيل صرف الراتب بنجاح');
-      setSalaryForm({
-        coachId: '',
-        month: new Date().toISOString().substring(0, 7),
-        salaryAmount: '',
-        paidAmount: '',
-        paymentMethod: 'CASH',
-        notes: ''
-      });
-      await loadData();
-      setTimeout(() => setMessage(''), 3000);
-    } catch (err: any) {
-      alert('❌ ' + (err.response?.data?.message || 'حدث خطأ'));
-    }
+    setConfirmConfig({
+      open: true,
+      type: 'info',
+      title: 'تأكيد صرف الراتب',
+      message: <span>تأكيد صرف راتب بقيمة <strong className="confirm-highlight">{paidAmount} ج.م</strong> للكابتن المحدد؟</span>,
+      confirmText: 'نعم، صرف الراتب',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.post('/coaches/salaries', {
+            coachId: salaryForm.coachId,
+            month: salaryForm.month,
+            salaryAmount: totalSalary,
+            paidAmount,
+            paymentMethod: salaryForm.paymentMethod,
+            notes: salaryForm.notes
+          });
+          setMessage('✅ تم تسجيل صرف الراتب بنجاح');
+          setSalaryForm({
+            coachId: '',
+            month: new Date().toISOString().substring(0, 7),
+            salaryAmount: '',
+            paidAmount: '',
+            paymentMethod: 'CASH',
+            notes: ''
+          });
+          await loadData();
+          setTimeout(() => setMessage(''), 3000);
+        } catch (err: any) {
+          showAlertModal('خطأ', err.response?.data?.message || 'حدث خطأ أثناء تسجيل صرف الراتب', 'danger');
+        }
+      },
+      onCancel: closeModal,
+    });
   };
 
-  const handleDeleteCoach = async (id: string) => {
-    if (!window.confirm('هل أنت متأكد من تعطيل/حذف هذا الكابتن؟')) return;
-    try {
-      await api.delete(`/coaches/${id}`);
-      alert('تم تعطيل الكابتن بنجاح');
-      await loadData();
-    } catch (err: any) {
-      alert('فشل التعطيل: ' + (err.response?.data?.message || err.message));
-    }
+  const handleDeleteCoach = (id: string, name?: string) => {
+    setConfirmConfig({
+      open: true,
+      type: 'danger',
+      title: 'تأكيد تعطيل/حذف الكابتن',
+      message: <span>هل أنت متأكد من تعطيل/حذف الكابتن <strong className="confirm-highlight">"{name || ''}"</strong>؟</span>,
+      confirmText: 'نعم، تعطيل الحساب',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.delete(`/coaches/${id}`);
+          showAlertModal('تم التعطيل', 'تم تعطيل الكابتن بنجاح', 'success');
+          await loadData();
+        } catch (err: any) {
+          showAlertModal('فشل التعطيل', err.response?.data?.message || err.message, 'danger');
+        }
+      },
+      onCancel: closeModal,
+    });
   };
 
   const methodLabels: any = {
@@ -199,7 +251,7 @@ const CoachesAndSalaries = () => {
                     <td>{c.salary?.toLocaleString()} ج.م</td>
                     <td>{new Date(c.createdAt).toLocaleDateString('ar-EG')}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className="btn-small btn-danger" onClick={() => handleDeleteCoach(c._id)}>
+                      <button className="btn-small btn-danger" onClick={() => handleDeleteCoach(c._id, c.name)}>
                         حذف / تعطيل
                       </button>
                     </td>
@@ -303,8 +355,20 @@ const CoachesAndSalaries = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmConfig.open}
+        type={confirmConfig.type || 'danger'}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        cancelText={confirmConfig.cancelText}
+        onConfirm={confirmConfig.onConfirm}
+        onCancel={confirmConfig.onCancel}
+      />
     </div>
   );
 };
 
 export default CoachesAndSalaries;
+

@@ -7,18 +7,19 @@ interface ConfirmModalProps {
   open: boolean;
   type?: ModalType;
   title: string;
-  message: string | React.ReactNode;
+  message?: string | React.ReactNode;
   confirmText?: string;
-  cancelText?: string;
+  cancelText?: string | null;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  children?: React.ReactNode;
 }
 
-const TYPE_ICONS: Record<ModalType, string> = {
-  danger:  '🗑️',
-  success: '✅',
-  warning: '⚠️',
-  info:    'ℹ️',
+const TYPE_ICONS: Record<ModalType, { emoji: string; badge3D: string }> = {
+  danger:  { emoji: '🗑️', badge3D: '💥' },
+  success: { emoji: '✅', badge3D: '✨' },
+  warning: { emoji: '⚠️', badge3D: '⚡' },
+  info:    { emoji: 'ℹ️', badge3D: '💡' },
 };
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -30,20 +31,40 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText  = 'إلغاء',
   onConfirm,
   onCancel,
+  children,
 }) => {
   if (!open) return null;
 
+  const handleClose = () => {
+    if (onCancel) onCancel();
+    else onConfirm();
+  };
+
+  const iconInfo = TYPE_ICONS[type] || TYPE_ICONS.danger;
+
   return (
-    <div className="confirm-overlay" onClick={onCancel}>
-      <div className="confirm-card" onClick={e => e.stopPropagation()}>
-        <div className={`confirm-icon-wrap ${type}`}>
-          <span>{TYPE_ICONS[type]}</span>
+    <div className="confirm-overlay" onClick={handleClose}>
+      <div className="confirm-card 3d-modal" onClick={e => e.stopPropagation()}>
+        {/* 3D Icon Container */}
+        <div className={`confirm-icon-wrap ${type} icon-3d-wrap`}>
+          <div className="icon-3d-glow" />
+          <span className="icon-3d-main">{iconInfo.emoji}</span>
+          <span className="icon-3d-badge">{iconInfo.badge3D}</span>
         </div>
+
         <div className="confirm-title">{title}</div>
-        <div className="confirm-body">{message}</div>
+        {message && <div className="confirm-body">{message}</div>}
+        {children && <div style={{ marginBottom: '20px' }}>{children}</div>}
+
         <div className="confirm-actions">
-          <button className="confirm-cancel" onClick={onCancel}>{cancelText}</button>
-          <button className={`confirm-ok ${type}`} onClick={onConfirm}>{confirmText}</button>
+          {cancelText !== null && onCancel && (
+            <button className="confirm-cancel 3d-btn-cancel" onClick={onCancel}>
+              {cancelText}
+            </button>
+          )}
+          <button className={`confirm-ok ${type} 3d-btn-ok`} onClick={onConfirm}>
+            {confirmText}
+          </button>
         </div>
       </div>
     </div>
@@ -51,3 +72,5 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 };
 
 export default ConfirmModal;
+
+

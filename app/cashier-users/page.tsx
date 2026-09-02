@@ -46,7 +46,7 @@ const CashierUsersPage = () => {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.username || !form.password) {
-      alert('جميع الحقول مطلوبة');
+      setErrorMessage('جميع الحقول مطلوبة');
       return;
     }
     setActionType('create');
@@ -59,19 +59,23 @@ const CashierUsersPage = () => {
     setConfirmOpen(true);
   };
 
-  const handlePromptResetPassword = (cashier: any) => {
-    const pwd = window.prompt(`أدخل كلمة المرور الجديدة لـ (${cashier.name}):`);
-    if (!pwd || pwd.trim().length === 0) return;
-    setNewPasswordInput(pwd.trim());
+  const handleOpenResetPassword = (cashier: any) => {
     setSelectedCashier(cashier);
+    setNewPasswordInput('');
     setActionType('resetPassword');
     setConfirmOpen(true);
   };
 
   const executeConfirmedAction = async () => {
-    setConfirmOpen(false);
     setErrorMessage('');
     setSuccessMessage('');
+
+    if (actionType === 'resetPassword' && !newPasswordInput.trim()) {
+      setErrorMessage('يرجى كتابة كلمة المرور الجديدة');
+      return;
+    }
+
+    setConfirmOpen(false);
 
     try {
       if (actionType === 'create') {
@@ -233,7 +237,7 @@ const CashierUsersPage = () => {
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                       <button
                         className="btn-small btn-secondary"
-                        onClick={() => handlePromptResetPassword(c)}
+                        onClick={() => handleOpenResetPassword(c)}
                         title="تغيير الباسورد"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
@@ -271,7 +275,7 @@ const CashierUsersPage = () => {
             ? 'تأكيد إضافة الكاشير'
             : actionType === 'toggleActive'
             ? `تأكيد ${selectedCashier?.active !== false ? 'تعطيل' : 'تفعيل'} الحساب`
-            : 'تأكيد تغيير كلمة المرور'
+            : 'تغيير كلمة المرور'
         }
         message={
           actionType === 'create' ? (
@@ -284,7 +288,7 @@ const CashierUsersPage = () => {
             </span>
           ) : (
             <span>
-              هل أنت متأكد من تغيير كلمة المرور لحساب <strong className="confirm-highlight">{selectedCashier?.name}</strong>؟
+              أدخل كلمة المرور الجديدة للحساب <strong className="confirm-highlight">({selectedCashier?.name})</strong>:
             </span>
           )
         }
@@ -292,7 +296,20 @@ const CashierUsersPage = () => {
         cancelText="إلغاء"
         onConfirm={executeConfirmedAction}
         onCancel={() => setConfirmOpen(false)}
-      />
+      >
+        {actionType === 'resetPassword' && (
+          <div style={{ marginTop: '12px' }}>
+            <input
+              type="password"
+              placeholder="كلمة المرور الجديدة"
+              value={newPasswordInput}
+              onChange={(e) => setNewPasswordInput(e.target.value)}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fff' }}
+              autoFocus
+            />
+          </div>
+        )}
+      </ConfirmModal>
     </div>
   );
 };

@@ -41,18 +41,33 @@ const Payments = () => {
   });
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Fetch members and coaches for dropdowns
-      const [memRes, coachRes, payRes] = await Promise.all([
-        api.get('/members'),
-        api.get('/coaches').catch(() => ({ data: { data: [] } })),
-        api.get('/payments')
-      ]);
+      // Fetch members safely
+      try {
+        const memRes = await api.get('/members');
+        const memList = Array.isArray(memRes.data) ? memRes.data : (memRes.data?.data || []);
+        setMembers(memList.filter((m: any) => m.active !== false));
+      } catch (e) {
+        console.error('Error fetching members:', e);
+        setMembers([]);
+      }
 
-      setMembers(memRes.data.filter((m: any) => m.active));
-      setCoaches(coachRes.data.data || []);
-      setPayments(payRes.data.data || []);
+      // Fetch coaches safely
+      try {
+        const coachRes = await api.get('/coaches');
+        setCoaches(Array.isArray(coachRes.data) ? coachRes.data : (coachRes.data?.data || []));
+      } catch (e) {
+        setCoaches([]);
+      }
+
+      // Fetch payments safely
+      try {
+        const payRes = await api.get('/payments');
+        setPayments(Array.isArray(payRes.data) ? payRes.data : (payRes.data?.data || []));
+      } catch (e) {
+        setPayments([]);
+      }
 
       // Fetch dashboard stats
       await fetchDashboardStats(dateRange, customFrom, customTo);
@@ -140,18 +155,33 @@ const Payments = () => {
     action: () => void;
   }>({ title: '', message: '', action: () => {} });
 
+  const [alertModal, setAlertModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'warning' | 'info';
+  }>({ open: false, title: '', message: '', type: 'warning' });
+
+  const showAlert = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info' = 'warning') => {
+    setAlertModal({ open: true, title, message, type });
+  };
+
+  const [payRemainingTarget, setPayRemainingTarget] = useState<any>(null);
+  const [payRemainingAmount, setPayRemainingAmount] = useState('');
+  const [payRemainingMethod, setPayRemainingMethod] = useState('CASH');
+
   const handleSubmitPayment = (e: any) => {
     e.preventDefault();
     const totalAmount = Number(form.amount);
     const paidAmount = Number(form.paidAmount);
 
     if (totalAmount < 0 || paidAmount < 0) {
-      alert('المبالغ المالية لا يمكن أن تكون سالبة');
+      showAlert('تنبيـه', 'المبالغ المالية لا يمكن أن تكون سالبة', 'warning');
       return;
     }
 
     if (paidAmount > totalAmount) {
-      alert('المبلغ المدفوع لا يمكن أن يكون أكبر من إجمالي المبلغ');
+      showAlert('تنبيـه', 'المبلغ المدفوع لا يمكن أن يكون أكبر من إجمالي المبلغ', 'warning');
       return;
     }
 
@@ -179,50 +209,56 @@ const Payments = () => {
           await loadData();
           setTimeout(() => setMessage(''), 3000);
         } catch (err: any) {
-          alert('❌ ' + (err.response?.data?.message || 'حدث خطأ'));
+          showAlert('خطأ', err.response?.data?.message || 'حدث خطأ أثناء تسجيل الدفعة', 'danger');
         }
       }
     });
     setConfirmOpen(true);
   };
 
-  const handlePayRemaining = async (payment: any) => {
-    const amountStr = window.prompt(`المبلغ المتبقي: ${payment.remainingAmount} ج.م\nأدخل المبلغ المراد سداده:`, String(payment.remainingAmount));
-    if (!amountStr) return;
-    const amount = Number(amountStr);
-    
+  const handleOpenPayRemaining = (payment: any) => {
+    setPayRemainingTarget(payment);
+    setPayRemainingAmount(String(payment.remainingAmount || ''));
+    setPayRemainingMethod('CASH');
+  };
+
+  const handleConfirmPayRemaining = async () => {
+    if (!payRemainingTarget) return;
+    const amount = Number(payRemainingAmount);
+
     if (isNaN(amount) || amount <= 0) {
-      alert("مبلغ غير صالح!");
+      showAlert('خطأ في المبلغ', 'يرجى إدخال مبلغ صحيح أكبر من الصفر', 'warning');
       return;
     }
 
-    if (amount > payment.remainingAmount) {
-      alert("المبلغ المدفوع أكبر من المتبقي!");
+    if (amount > payRemainingTarget.remainingAmount) {
+      showAlert('خطأ في المبلغ', 'المبلغ المدفوع يتجاوز المبلغ المتبقي المطلوب', 'warning');
       return;
     }
 
-    const method = window.prompt("أدخل طريقة الدفع (CASH, CARD, BANK_TRANSFER, ONLINE, OTHER):", "CASH");
-    if (method === null) return;
+    const payment = payRemainingTarget;
+    const method = payRemainingMethod;
+    setPayRemainingTarget(null);
 
     setConfirmConfig({
       title: 'تأكيد سداد المبلغ المتبقي',
       type: 'success',
       message: (
         <span>
-          هل أنت متأكد من سداد مبلغ بقيمة <strong className="confirm-highlight">{amount} ج.م</strong> بطريقة <strong className="confirm-highlight">{method.toUpperCase()}</strong>؟
+          هل أنت متأكد من سداد مبلغ بقيمة <strong className="confirm-highlight">{amount} ج.م</strong> بطريقة <strong className="confirm-highlight">{methodLabels[method] || method}</strong>؟
         </span>
       ),
       action: async () => {
         try {
           await api.post(`/payments/${payment._id}/pay-remaining`, {
             amountPaid: amount,
-            paymentMethod: method.toUpperCase(),
+            paymentMethod: method,
           });
           setMessage("✅ تم سداد المبلغ بنجاح!");
           await loadData();
           setTimeout(() => setMessage(''), 3000);
         } catch (err: any) {
-          alert("❌ فشل السداد: " + (err.response?.data?.message || err.message));
+          showAlert('فشل السداد', err.response?.data?.message || err.message, 'danger');
         }
       }
     });
@@ -369,8 +405,12 @@ const Payments = () => {
               <div>
                 <label>العضو</label>
                 <select value={txFilters.memberId} onChange={e => setTxFilters({ ...txFilters, memberId: e.target.value })}>
-                  <option value="">الكل</option>
-                  {members.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
+                  <option value="">الكل ({members.length} عضو)</option>
+                  {members.map(m => (
+                    <option key={m._id} value={m._id}>
+                      {m.name} {m.shiftType === 'GIRLS' ? '(🌸 بنات)' : m.shiftType === 'BOYS' ? '(🏋️‍♂️ شباب)' : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -434,8 +474,12 @@ const Payments = () => {
               <div>
                 <label>العضو</label>
                 <select value={form.memberId} onChange={(e) => handleMemberChange(e.target.value)} required>
-                  <option value="">اختر عضو</option>
-                  {members.map(m => <option key={m._id} value={m._id}>{m.name} - {m.phone}</option>)}
+                  <option value="">{members.length > 0 ? `اختر عضو (${members.length} عضو متاح)` : 'اختر عضو'}</option>
+                  {members.map(m => (
+                    <option key={m._id} value={m._id}>
+                      {m.name} — {m.phone} {m.shiftType === 'GIRLS' ? '(🌸 شفت البنات)' : m.shiftType === 'BOYS' ? '(🏋️‍♂️ شفت الشباب)' : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -509,7 +553,7 @@ const Payments = () => {
                     <td>{new Date(p.paymentDate).toLocaleDateString('ar-EG')}</td>
                     <td style={{ textAlign: 'center' }}>
                       {p.remainingAmount > 0 ? (
-                        <button className="btn-small" onClick={() => handlePayRemaining(p)}>
+                        <button className="btn-small" onClick={() => handleOpenPayRemaining(p)}>
                           💵 سداد المتبقي
                         </button>
                       ) : (
@@ -529,6 +573,56 @@ const Payments = () => {
         </div>
       )}
 
+      {/* Pay Remaining Modal */}
+      {payRemainingTarget && (
+        <ConfirmModal
+          open={true}
+          type="info"
+          title="سداد المبلغ المتبقي"
+          message={`العضو: ${payRemainingTarget.member?.name || ''} — المتبقي الحالي: ${payRemainingTarget.remainingAmount} ج.م`}
+          confirmText="متابعة السداد"
+          cancelText="إلغاء"
+          onConfirm={handleConfirmPayRemaining}
+          onCancel={() => setPayRemainingTarget(null)}
+        >
+          <div style={{ textAlign: 'right', marginTop: '12px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>المبلغ المراد سداده (ج.م)</label>
+            <input
+              type="number"
+              min="1"
+              max={payRemainingTarget.remainingAmount}
+              value={payRemainingAmount}
+              onChange={(e) => setPayRemainingAmount(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fff', marginBottom: '12px' }}
+            />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>طريقة الدفع</label>
+            <select
+              value={payRemainingMethod}
+              onChange={(e) => setPayRemainingMethod(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fff' }}
+            >
+              <option value="CASH">كاش</option>
+              <option value="CARD">بطاقة</option>
+              <option value="BANK_TRANSFER">تحويل بنكي</option>
+              <option value="ONLINE">أونلاين</option>
+              <option value="OTHER">أخرى</option>
+            </select>
+          </div>
+        </ConfirmModal>
+      )}
+
+      {/* Alert Modal */}
+      <ConfirmModal
+        open={alertModal.open}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="حسناً"
+        cancelText={null}
+        onConfirm={() => setAlertModal(prev => ({ ...prev, open: false }))}
+      />
+
+      {/* Confirm Action Modal */}
       <ConfirmModal
         open={confirmOpen}
         type={confirmConfig.type || 'info'}

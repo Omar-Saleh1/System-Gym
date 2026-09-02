@@ -88,24 +88,76 @@ const Subscriptions = () => {
     } catch (err: any) { setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء حفظ الخطة'); }
   };
 
-  const handleDeletePlan = async (id: string, name: string) => {
-    if (!window.confirm(`هل أنت متأكد من حذف الخطة "${name}"؟`)) return;
-    try {
-      await api.delete(`/subscriptions/plans/${id}`);
-      loadAll();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'فشل حذف الخطة');
-    }
+  const [modalConfig, setModalConfig] = useState<{
+    open: boolean;
+    type?: 'danger' | 'success' | 'warning' | 'info';
+    title: string;
+    message: string | React.ReactNode;
+    confirmText?: string;
+    cancelText?: string | null;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, open: false }));
+
+  const showModalAlert = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info' = 'danger') => {
+    setModalConfig({
+      open: true,
+      type,
+      title,
+      message,
+      confirmText: 'حسناً',
+      cancelText: null,
+      onConfirm: closeModal,
+    });
   };
 
-  const handleDeleteSubscription = async (id: string, memberName?: string) => {
-    if (!window.confirm(`هل أنت متأكد من حذف اشتراك العضو "${memberName || ''}"؟`)) return;
-    try {
-      await api.delete(`/subscriptions/${id}`);
-      loadAll();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'فشل حذف الاشتراك');
-    }
+  const handleDeletePlan = (id: string, name: string) => {
+    setModalConfig({
+      open: true,
+      type: 'danger',
+      title: 'تأكيد حذف الخطة',
+      message: <span>هل أنت متأكد من حذف الخطة <strong className="confirm-highlight">"{name}"</strong>؟</span>,
+      confirmText: 'حذف الخطة',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.delete(`/subscriptions/plans/${id}`);
+          loadAll();
+        } catch (err: any) {
+          showModalAlert('فشل الحذف', err.response?.data?.message || 'فشل حذف الخطة');
+        }
+      },
+      onCancel: closeModal,
+    });
+  };
+
+  const handleDeleteSubscription = (id: string, memberName?: string) => {
+    setModalConfig({
+      open: true,
+      type: 'danger',
+      title: 'تأكيد حذف الاشتراك',
+      message: <span>هل أنت متأكد من حذف اشتراك العضو <strong className="confirm-highlight">"{memberName || ''}"</strong> نهائياً وتصفية بياناته المالية؟</span>,
+      confirmText: 'نعم، حذف الاشتراك',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.delete(`/subscriptions/${id}`);
+          loadAll();
+        } catch (err: any) {
+          showModalAlert('فشل الحذف', err.response?.data?.message || 'فشل حذف الاشتراك');
+        }
+      },
+      onCancel: closeModal,
+    });
   };
 
   const openEditModal = (s: any) => {
@@ -122,12 +174,12 @@ const Subscriptions = () => {
       await api.put(`/subscriptions/${editSub._id}`, payload);
       setEditSub(null);
       loadAll();
-    } catch (err: any) { alert(err.response?.data?.message || 'فشل التعديل'); }
+    } catch (err: any) { showModalAlert('فشل التعديل', err.response?.data?.message || 'فشل التعديل'); }
   };
 
   const isExpired = (s: any) => s.status === 'expired' || new Date(s.endDate) < new Date() || (s.subscriptionType === 'sessions' && s.sessionsLimit > 0 && s.sessionsUsed >= s.sessionsLimit);
-  const handleFreeze = async (id: string) => { try { await api.post(`/subscriptions/${id}/freeze`); loadAll(); } catch (err: any) { alert(err.response?.data?.message || 'فشل التجميد'); } };
-  const handleUnfreeze = async (id: string) => { try { await api.post(`/subscriptions/${id}/unfreeze`); loadAll(); } catch (err: any) { alert(err.response?.data?.message || 'فشل إلغاء التجميد'); } };
+  const handleFreeze = async (id: string) => { try { await api.post(`/subscriptions/${id}/freeze`); loadAll(); } catch (err: any) { showModalAlert('فشل التجميد', err.response?.data?.message || 'فشل التجميد'); } };
+  const handleUnfreeze = async (id: string) => { try { await api.post(`/subscriptions/${id}/unfreeze`); loadAll(); } catch (err: any) { showModalAlert('فشل إلغاء التجميد', err.response?.data?.message || 'فشل إلغاء التجميد'); } };
 
   const selectedPlan = plans.find(p => p._id === form.planId);
 

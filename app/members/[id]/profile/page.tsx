@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../lib/axios';
+import ConfirmModal from '../../../../components/ConfirmModal';
 
 const MemberProfile = () => {
   const params = useParams();
@@ -10,13 +11,57 @@ const MemberProfile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Pay remaining modal state
+  const [payTarget, setPayTarget] = useState<any>(null);
+  const [payAmount, setPayAmount] = useState('');
+  const [payMethod, setPayMethod] = useState('CASH');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  const fetchProfile = () => {
     if (!id) return;
+    setLoading(true);
     api.get(`/members/${id}/profile`)
       .then(r => setProfile(r.data))
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, [id]);
+
+  const handleOpenPayRemaining = (p: any) => {
+    setPayTarget(p);
+    setPayAmount(String(p.remainingAmount || ''));
+    setPayMethod('CASH');
+  };
+
+  const handleConfirmPay = async () => {
+    if (!payTarget) return;
+    const amt = Number(payAmount);
+    if (isNaN(amt) || amt <= 0 || amt > payTarget.remainingAmount) {
+      setAlertMessage('يرجى إدخال مبلغ صحيح لا يتجاوز المتبقي');
+      return;
+    }
+
+    setConfirmOpen(true);
+  };
+
+  const executePay = async () => {
+    setConfirmOpen(false);
+    if (!payTarget) return;
+    try {
+      await api.post(`/payments/${payTarget._id}/pay-remaining`, {
+        amountPaid: Number(payAmount),
+        paymentMethod: payMethod,
+      });
+      setPayTarget(null);
+      fetchProfile();
+    } catch (err: any) {
+      setAlertMessage(err.response?.data?.message || 'فشل السداد');
+    }
+  };
 
   if (loading) return <div className="page">جاري التحميل...</div>;
   if (!profile?.member) return <div className="page">العضو غير موجود</div>;
@@ -79,11 +124,18 @@ const MemberProfile = () => {
                       {profile.subscriptionPayment.remainingAmount} ج.م
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', marginTop: '6px' }}>
                     <span style={labelStyle}>حالة الدفع:</span>
-                    <span className={'badge ' + (profile.subscriptionPayment.status === 'PAID' ? 'badge-success' : profile.subscriptionPayment.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>
-                      {profile.subscriptionPayment.status === 'PAID' ? 'مدفوع بالكامل' : profile.subscriptionPayment.status === 'PARTIAL' ? 'مدفوع جزئياً' : 'معلق'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className={'badge ' + (profile.subscriptionPayment.status === 'PAID' ? 'badge-success' : profile.subscriptionPayment.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>
+                        {profile.subscriptionPayment.status === 'PAID' ? 'مدفوع بالكامل' : profile.subscriptionPayment.status === 'PARTIAL' ? 'مدفوع جزئياً' : 'معلق'}
+                      </span>
+                      {(profile.subscriptionPayment.remainingAmount > 0 || profile.subscriptionPayment.status === 'PARTIAL' || profile.subscriptionPayment.status === 'PENDING') && (
+                        <button className="btn-small" onClick={() => handleOpenPayRemaining(profile.subscriptionPayment)}>
+                          💵 سداد المتبقي
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -131,14 +183,19 @@ const MemberProfile = () => {
           {payments?.history?.length > 0 && (
             <div className="table-container">
               <table className="data-table">
-                <thead><tr><th>المبلغ</th><th>المدفوع</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                <thead><tr><th>المبلغ</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead>
                 <tbody>
                   {payments.history.slice(0, 5).map((p: any) => (
                     <tr key={p._id}>
                       <td>{p.amount?.toLocaleString()} ج.م</td>
                       <td>{p.paidAmount?.toLocaleString()} ج.م</td>
-                      <td><span className={'badge ' + (p.status === 'PAID' ? 'badge-success' : p.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>{p.status}</span></td>
-                      <td>{new Date(p.paymentDate).toLocaleDateString('ar-EG')}</td>
+                      <td style={{ color: p.remainingAmount > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>{p.remainingAmount?.toLocaleString()} ج.م</td>
+                      <td><span className={'badge ' + (p.status === 'PAID' ? 'badge-success' : p.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>{p.status === 'PAID' ? 'مكتمل' : 'جزئي'}</span></td>
+                      <td>
+                        {p.remainingAmount > 0 || p.status === 'PARTIAL' || p.status === 'PENDING' ? (
+                          <button className="btn-small" onClick={() => handleOpenPayRemaining(p)}>💵 سداد</button>
+                        ) : <span style={{ color: 'var(--success)', fontSize: '12px' }}>✓</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -173,6 +230,67 @@ const MemberProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Pay Remaining Modal */}
+      {payTarget && (
+        <ConfirmModal
+          open={true}
+          type="info"
+          title="سداد المبلغ المتبقي"
+          message={`المبلغ المتبقي المستحق: ${payTarget.remainingAmount} ج.م`}
+          confirmText="متابعة السداد"
+          cancelText="إلغاء"
+          onConfirm={handleConfirmPay}
+          onCancel={() => setPayTarget(null)}
+        >
+          <div style={{ textAlign: 'right', marginTop: '12px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>المبلغ المراد سداده (ج.م)</label>
+            <input
+              type="number"
+              min="1"
+              max={payTarget.remainingAmount}
+              value={payAmount}
+              onChange={(e) => setPayAmount(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fff', marginBottom: '12px' }}
+            />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>طريقة الدفع</label>
+            <select
+              value={payMethod}
+              onChange={(e) => setPayMethod(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fff' }}
+            >
+              <option value="CASH">كاش</option>
+              <option value="CARD">بطاقة</option>
+              <option value="BANK_TRANSFER">تحويل بنكي</option>
+              <option value="ONLINE">أونلاين</option>
+              <option value="OTHER">أخرى</option>
+            </select>
+          </div>
+        </ConfirmModal>
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        type="success"
+        title="تأكيد عملية السداد"
+        message={<span>هل أنت متأكد من سداد مبلغ بقيمة <strong className="confirm-highlight">{payAmount} ج.م</strong> لـ <strong className="confirm-highlight">{member?.name}</strong>؟</span>}
+        confirmText="تأكيد ونقل المبلغ"
+        cancelText="إلغاء"
+        onConfirm={executePay}
+        onCancel={() => setConfirmOpen(false)}
+      />
+
+      {/* Alert Error Modal */}
+      <ConfirmModal
+        open={!!alertMessage}
+        type="warning"
+        title="تنبيه"
+        message={alertMessage || ''}
+        confirmText="حسناً"
+        cancelText={null}
+        onConfirm={() => setAlertMessage(null)}
+      />
     </div>
   );
 };

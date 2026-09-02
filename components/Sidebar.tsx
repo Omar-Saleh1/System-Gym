@@ -20,11 +20,14 @@ import {
   ReceiptRefundIcon,
 } from '@heroicons/react/24/outline';
 
+import ConfirmModal from './ConfirmModal';
+
 const Sidebar = () => {
   const { cashier, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState(false);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -43,7 +46,7 @@ const Sidebar = () => {
         setDeferredPrompt(null);
       }
     } else {
-      alert('📱 لتنزيل التطبيق على الموبايل:\n\n• على أندرويد (Chrome): اضغط 3 نقاط بأعلى المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).\n• على آيفون (Safari): اضغط زر المشاركة ⎋ بأسفل الشاشة ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).');
+      setShowInstallModal(true);
     }
   };
 
@@ -134,6 +137,21 @@ const Sidebar = () => {
           تسجيل خروج
         </button>
       </div>
+      <ConfirmModal
+        open={showInstallModal}
+        type="info"
+        title="تثبيت تطبيق الموبايل"
+        message={
+          <div style={{ textAlign: 'right', fontSize: '13px', lineHeight: '1.8' }}>
+            <p><strong>📱 لتنزيل التطبيق على الهاتف:</strong></p>
+            <p style={{ marginTop: '8px' }}>• <strong>أندرويد (Chrome):</strong> اضغط الـ 3 نقاط بأعلى المتصفح ➔ اختر <em>"إضافة إلى الشاشة الرئيسية"</em>.</p>
+            <p style={{ marginTop: '4px' }}>• <strong>آيفون (Safari):</strong> اضغط زر المشاركة ⎋ بأسفل الشاشة ➔ اختر <em>"إضافة إلى الشاشة الرئيسية"</em>.</p>
+          </div>
+        }
+        confirmText="فهمت"
+        cancelText={null}
+        onConfirm={() => setShowInstallModal(false)}
+      />
     </div>
   );
 };

@@ -2,11 +2,31 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Plans = () => {
   const [tab, setTab] = useState('workout');
   const [members, setMembers] = useState<any[]>([]);
   const [message, setMessage] = useState('');
+
+  // Modal State
+  const [confirmConfig, setConfirmConfig] = useState<{
+    open: boolean;
+    type?: 'danger' | 'success' | 'warning' | 'info';
+    title: string;
+    message: string | React.ReactNode;
+    confirmText?: string;
+    cancelText?: string | null;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const closeModal = () => setConfirmConfig(prev => ({ ...prev, open: false }));
 
   // Workout state
   const [wForm, setWForm] = useState({ memberId: '', planName: '', goal: '', duration: '', notes: '', days: [{ dayName: '', exercises: [{ name: '', muscleGroup: '', sets: '', reps: '', rest: '' }] }] });
@@ -51,10 +71,25 @@ const Plans = () => {
     loadWorkoutPlans(wViewMember);
   };
 
-  const deleteWorkout = async (id: string) => {
-    if (!window.confirm('هل أنت متأكد من الحذف؟')) return;
-    await api.delete(`/workout-plans/${id}`);
-    loadWorkoutPlans(wViewMember);
+  const deleteWorkout = (id: string, planName?: string) => {
+    setConfirmConfig({
+      open: true,
+      type: 'danger',
+      title: 'تأكيد حذف جدول التمرين',
+      message: <span>هل أنت متأكد من حذف جدول التمرين <strong className="confirm-highlight">"{planName || ''}"</strong>؟</span>,
+      confirmText: 'نعم، احذف الخطة',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.delete(`/workout-plans/${id}`);
+          loadWorkoutPlans(wViewMember);
+        } catch (err: any) {
+          showMsg('❌ فشل الحذف');
+        }
+      },
+      onCancel: closeModal,
+    });
   };
 
   // ─── Diet ───
@@ -80,10 +115,25 @@ const Plans = () => {
     try { const { data } = await api.get(`/diet-plans/member/${mid}`); setDPlans(data.data || []); } catch { setDPlans([]); }
   };
 
-  const deleteDiet = async (id: string) => {
-    if (!window.confirm('هل أنت متأكد من الحذف؟')) return;
-    await api.delete(`/diet-plans/${id}`);
-    loadDietPlans(dViewMember);
+  const deleteDiet = (id: string, planName?: string) => {
+    setConfirmConfig({
+      open: true,
+      type: 'danger',
+      title: 'تأكيد حذف النظام الغذائي',
+      message: <span>هل أنت متأكد من حذف النظام الغذائي <strong className="confirm-highlight">"{planName || ''}"</strong>؟</span>,
+      confirmText: 'نعم، احذف الخطة',
+      cancelText: 'إلغاء',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          await api.delete(`/diet-plans/${id}`);
+          loadDietPlans(dViewMember);
+        } catch (err: any) {
+          showMsg('❌ فشل الحذف');
+        }
+      },
+      onCancel: closeModal,
+    });
   };
 
   const tabStyle = (t: string) => ({
@@ -164,7 +214,7 @@ const Plans = () => {
                         <td><span className={'badge ' + statusBadge(p.status)}>{p.status}</span></td>
                         <td>
                           {p.status === 'ACTIVE' && <button className="btn-small" onClick={() => completeWorkout(p._id)}>إكمال</button>}
-                          <button className="btn-small btn-danger" onClick={() => deleteWorkout(p._id)} style={{ marginRight: '4px' }}>حذف</button>
+                          <button className="btn-small btn-danger" onClick={() => deleteWorkout(p._id, p.planName)} style={{ marginRight: '4px' }}>حذف</button>
                         </td>
                       </tr>
                     ))}
@@ -237,7 +287,7 @@ const Plans = () => {
                         <td>{p.calories || '-'}</td>
                         <td>{p.protein || '-'}</td>
                         <td><span className={'badge ' + statusBadge(p.status)}>{p.status}</span></td>
-                        <td><button className="btn-small btn-danger" onClick={() => deleteDiet(p._id)}>حذف</button></td>
+                        <td><button className="btn-small btn-danger" onClick={() => deleteDiet(p._id, p.planName)}>حذف</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -248,6 +298,17 @@ const Plans = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmConfig.open}
+        type={confirmConfig.type || 'danger'}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        cancelText={confirmConfig.cancelText}
+        onConfirm={confirmConfig.onConfirm}
+        onCancel={confirmConfig.onCancel}
+      />
     </div>
   );
 };
