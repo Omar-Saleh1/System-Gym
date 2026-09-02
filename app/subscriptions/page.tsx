@@ -267,7 +267,7 @@ const Subscriptions = () => {
                         <td>{p.subscriptionType === 'sessions' ? `${p.sessionsLimit || 0} حصة` : `${p.durationInDays || 0} يوم`}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{p.price} ج.م</td>
                         <td style={{ textAlign: 'center' }}>
-                          <button className="btn-small btn-danger" onClick={() => handleDeletePlan(p._id, p.name)}>
+                          <button className="btn-3d btn-3d-delete" onClick={() => handleDeletePlan(p._id, p.name)}>
                             🗑️ حذف الخطة
                           </button>
                         </td>
@@ -362,10 +362,10 @@ const Subscriptions = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button className="btn-small" onClick={() => openEditModal(s)} style={{ background: '#8b5cf6', color: '#fff' }}>✏️ تعديل</button>
-                      {s.status === 'active' && !expired && <button className="btn-small" onClick={() => handleFreeze(s._id)} style={{ background: '#3b82f6', color: '#fff' }}>❄️ تجميد</button>}
-                      {s.status === 'frozen' && <button className="btn-small" onClick={() => handleUnfreeze(s._id)} style={{ background: '#22c55e', color: '#fff' }}>🔥 تشغيل</button>}
-                      <button className="btn-small btn-danger" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
+                      <button className="btn-3d btn-3d-edit" onClick={() => openEditModal(s)}>✏️ تعديل</button>
+                      {s.status === 'active' && !expired && <button className="btn-3d btn-3d-freeze" onClick={() => handleFreeze(s._id)}>❄️ تجميد</button>}
+                      {s.status === 'frozen' && <button className="btn-3d btn-3d-unfreeze" onClick={() => handleUnfreeze(s._id)}>🔥 تشغيل</button>}
+                      <button className="btn-3d btn-3d-delete" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
                     </div>
                   </td>
                 </tr>

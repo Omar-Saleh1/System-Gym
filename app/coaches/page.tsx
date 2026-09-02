@@ -251,8 +251,8 @@ const CoachesAndSalaries = () => {
                     <td>{c.salary?.toLocaleString()} ج.م</td>
                     <td>{new Date(c.createdAt).toLocaleDateString('ar-EG')}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className="btn-small btn-danger" onClick={() => handleDeleteCoach(c._id, c.name)}>
-                        حذف / تعطيل
+                      <button className="btn-3d btn-3d-delete" onClick={() => handleDeleteCoach(c._id, c.name)}>
+                        🗑️ حذف / تعطيل
                       </button>
                     </td>
                   </tr>

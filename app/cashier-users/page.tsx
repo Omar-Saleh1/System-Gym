@@ -236,19 +236,18 @@ const CashierUsersPage = () => {
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                       <button
-                        className="btn-small btn-secondary"
+                        className="btn-3d btn-3d-edit"
                         onClick={() => handleOpenResetPassword(c)}
                         title="تغيير الباسورد"
-                        style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
                         <KeyIcon style={{ width: '14px' }} />
-                        كلمة السر
+                        🔑 كلمة السر
                       </button>
                       <button
-                        className={`btn-small ${c.active !== false ? 'btn-danger' : 'btn-primary'}`}
+                        className={`btn-3d ${c.active !== false ? 'btn-3d-delete' : 'btn-3d-unfreeze'}`}
                         onClick={() => handleToggleActive(c)}
                       >
-                        {c.active !== false ? 'تعطيل الحساب' : 'تفعيل الحساب'}
+                        {c.active !== false ? '🚫 تعطيل الحساب' : '⚡ تفعيل الحساب'}
                       </button>
                     </div>
                   </td>

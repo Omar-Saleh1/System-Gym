@@ -189,15 +189,17 @@ const Members = () => {
                 </td>
                 <td>{new Date(m.createdAt).toLocaleDateString('ar-EG')}</td>
                 <td>
-                  <button className="btn-small" onClick={() => router.push(`/members/${m._id}/profile`)}>البروفايل</button>
-                  <button className="btn-small" onClick={() => setQrMember(m)}>QR</button>
-                  <button className="btn-small" onClick={() => handleEdit(m)}>تعديل</button>
-                  <button
-                    className="btn-small btn-danger"
-                    onClick={() => setDeleteTarget({ id: m._id, name: m.name })}
-                  >
-                    حذف
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <button className="btn-3d btn-3d-profile" onClick={() => router.push(`/members/${m._id}/profile`)}>👤 البروفايل</button>
+                    <button className="btn-3d btn-3d-qr" onClick={() => setQrMember(m)}>📱 QR</button>
+                    <button className="btn-3d btn-3d-edit" onClick={() => handleEdit(m)}>✏️ تعديل</button>
+                    <button
+                      className="btn-3d btn-3d-delete"
+                      onClick={() => setDeleteTarget({ id: m._id, name: m.name })}
+                    >
+                      🗑️ حذف
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
