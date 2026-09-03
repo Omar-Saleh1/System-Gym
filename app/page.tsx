@@ -39,12 +39,54 @@ const Dashboard = () => {
   if (loading) return <div className="page">جاري التحميل...</div>;
 
   const topCards = [
-    { label: 'إجمالي إيراد النهاردة', value: `${payStats?.todayRevenue?.toLocaleString() || 0}`, sub: 'ج.م', icon: <CurrencyDollarIcon /> },
-    { label: 'حصص فردية النهاردة', value: stats?.todaySingleVisitsCount || 0, sub: `${stats?.todaySingleVisitsRevenue || 0} ج.م`, icon: <SparklesIcon /> },
-    { label: 'عمليات بيع النهاردة', value: stats?.todaySalesCount || 0, sub: '', icon: <DocumentTextIcon /> },
-    { label: 'إجمالي الأعضاء', value: stats?.totalMembers || 0, sub: '', icon: <UserGroupIcon /> },
-    { label: 'اشتراكات نشطة', value: stats?.activeSubscriptions || 0, sub: '', icon: <CheckCircleIcon /> },
-    { label: 'هتنتهي خلال أسبوع', value: stats?.expiringSoon || 0, sub: '', icon: <ClockIcon /> },
+    { 
+      label: 'إجمالي إيراد النهاردة', 
+      value: `${payStats?.todayRevenue?.toLocaleString() || 0}`, 
+      sub: 'ج.م', 
+      icon: <BanknotesIcon />,
+      color: '#22c55e',
+      bgGradient: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.08))'
+    },
+    { 
+      label: 'حصص فردية النهاردة', 
+      value: stats?.todaySingleVisitsCount || 0, 
+      sub: `${stats?.todaySingleVisitsRevenue || 0} ج.م`, 
+      icon: <SparklesIcon />,
+      color: '#f59e0b',
+      bgGradient: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08))'
+    },
+    { 
+      label: 'عمليات بيع النهاردة', 
+      value: stats?.todaySalesCount || 0, 
+      sub: '', 
+      icon: <DocumentTextIcon />,
+      color: '#06b6d4',
+      bgGradient: 'linear-gradient(135deg, rgba(6,182,212,0.25), rgba(6,182,212,0.08))'
+    },
+    { 
+      label: 'إجمالي الأعضاء', 
+      value: stats?.totalMembers || 0, 
+      sub: '', 
+      icon: <UserGroupIcon />,
+      color: '#8b5cf6',
+      bgGradient: 'linear-gradient(135deg, rgba(139,92,246,0.25), rgba(139,92,246,0.08))'
+    },
+    { 
+      label: 'اشتراكات نشطة', 
+      value: stats?.activeSubscriptions || 0, 
+      sub: '', 
+      icon: <CheckCircleIcon />,
+      color: '#10b981',
+      bgGradient: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))'
+    },
+    { 
+      label: 'هتنتهي خلال أسبوع', 
+      value: stats?.expiringSoon || 0, 
+      sub: '', 
+      icon: <ClockIcon />,
+      color: '#f43f5e',
+      bgGradient: 'linear-gradient(135deg, rgba(244,63,94,0.25), rgba(244,63,94,0.08))'
+    },
   ];
 
   return (
@@ -75,11 +117,44 @@ const Dashboard = () => {
       
       <div className="cards-grid">
         {topCards.map((c) => (
-          <div className="stat-card" key={c.label}>
-            <div className="stat-icon">{c.icon}</div>
-            <div className="stat-label">{c.label}</div>
-            <div className="stat-value">
-              {c.value} {c.sub && <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{c.sub}</span>}
+          <div 
+            className="stat-card" 
+            key={c.label}
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              padding: '20px',
+              borderRadius: '16px',
+              background: 'var(--bg-card)',
+              border: `1px solid ${c.color}33`,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+                {c.label}
+              </div>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                background: c.bgGradient,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: c.color,
+                boxShadow: `0 4px 14px ${c.color}25`
+              }}>
+                {React.cloneElement(c.icon as React.ReactElement, { style: { width: '22px', height: '22px' } })}
+              </div>
+            </div>
+
+            <div className="stat-value" style={{ color: c.color, fontSize: '26px', fontWeight: 'bold' }}>
+              {c.value} {c.sub && <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginRight: '4px', fontWeight: 'normal' }}>{c.sub}</span>}
             </div>
           </div>
         ))}

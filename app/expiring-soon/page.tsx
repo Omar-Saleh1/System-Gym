@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { 
+  ClockIcon, 
+  ExclamationTriangleIcon,
+  CalendarDaysIcon
+} from '@heroicons/react/24/outline';
 
 const ExpiringSoon = () => {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
@@ -35,7 +40,7 @@ const ExpiringSoon = () => {
 
   return (
     <div className="page">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>أيام المتبقية:</span>
           <input 
@@ -48,7 +53,50 @@ const ExpiringSoon = () => {
         </div>
         <div>
           <h1>اشتراكات أوشكت على الانتهاء</h1>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'right', marginTop: '-16px' }}>قائمة الأعضاء الذين تقترب اشتراكاتهم من تاريخ النهاية.</div>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'right' }}>
+            قائمة الأعضاء الذين تقترب اشتراكاتهم من تاريخ النهاية لمتابعة التجديد.
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Card */}
+      <div className="cards-grid" style={{ marginBottom: '24px' }}>
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(244, 63, 94, 0.25)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              اشتراكات تنتهي خلال {days} أيام
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(244,63,94,0.25), rgba(244,63,94,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f43f5e',
+              boxShadow: '0 4px 14px rgba(244,63,94,0.2)'
+            }}>
+              <ClockIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#f43f5e', fontSize: '26px', fontWeight: 'bold' }}>
+            {subscriptions.length} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>عضو</span>
+          </div>
         </div>
       </div>
 

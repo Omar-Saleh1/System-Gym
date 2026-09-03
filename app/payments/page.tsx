@@ -3,6 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import ConfirmModal from '../../components/ConfirmModal';
+import {
+  BanknotesIcon,
+  ReceiptRefundIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon
+} from '@heroicons/react/24/outline';
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'payments'>('dashboard');
@@ -355,23 +361,122 @@ const Payments = () => {
           {/* Stats Cards */}
           {dashboardStats && (
             <div className="cards-grid" style={{ marginBottom: '24px' }}>
-              <div className="stat-card">
-                <div className="stat-value" style={{ color: 'var(--success)' }}>
-                  {dashboardStats.income?.toLocaleString() || 0} <span style={{ fontSize: '14px' }}>ج.م</span>
+              <div 
+                className="stat-card"
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '20px',
+                  borderRadius: '16px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(34, 197, 94, 0.25)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+                    إجمالي المقبوضات (Income)
+                  </div>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.08))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#22c55e',
+                    boxShadow: '0 4px 14px rgba(34,197,94,0.2)'
+                  }}>
+                    <BanknotesIcon style={{ width: '22px', height: '22px' }} />
+                  </div>
                 </div>
-                <div className="stat-label">إجمالي المقبوضات (Income)</div>
+                <div className="stat-value" style={{ color: '#22c55e', fontSize: '26px', fontWeight: 'bold' }}>
+                  {dashboardStats.income?.toLocaleString() || 0} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>ج.م</span>
+                </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value" style={{ color: 'var(--danger)' }}>
-                  {dashboardStats.expense?.toLocaleString() || 0} <span style={{ fontSize: '14px' }}>ج.م</span>
+
+              <div 
+                className="stat-card"
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '20px',
+                  borderRadius: '16px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+                    إجمالي المصروفات (Expenses)
+                  </div>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ef4444',
+                    boxShadow: '0 4px 14px rgba(239,68,68,0.2)'
+                  }}>
+                    <ReceiptRefundIcon style={{ width: '22px', height: '22px' }} />
+                  </div>
                 </div>
-                <div className="stat-label">إجمالي المصروفات (Expenses)</div>
+                <div className="stat-value" style={{ color: '#ef4444', fontSize: '26px', fontWeight: 'bold' }}>
+                  {dashboardStats.expense?.toLocaleString() || 0} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>ج.م</span>
+                </div>
               </div>
-              <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
-                <div className="stat-value" style={{ color: dashboardStats.netProfit >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-                  {dashboardStats.netProfit?.toLocaleString() || 0} <span style={{ fontSize: '14px' }}>ج.م</span>
+
+              <div 
+                className="stat-card"
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '20px',
+                  borderRadius: '16px',
+                  background: 'var(--bg-card)',
+                  border: `1px solid ${dashboardStats.netProfit >= 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+                    صافي الأرباح (Net Profit)
+                  </div>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: dashboardStats.netProfit >= 0 ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: dashboardStats.netProfit >= 0 ? '#10b981' : '#ef4444',
+                    boxShadow: `0 4px 14px ${dashboardStats.netProfit >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`
+                  }}>
+                    {dashboardStats.netProfit >= 0 ? (
+                      <ArrowTrendingUpIcon style={{ width: '22px', height: '22px' }} />
+                    ) : (
+                      <ArrowTrendingDownIcon style={{ width: '22px', height: '22px' }} />
+                    )}
+                  </div>
                 </div>
-                <div className="stat-label">صافي الأرباح (Net Profit)</div>
+                <div className="stat-value" style={{ color: dashboardStats.netProfit >= 0 ? '#10b981' : '#ef4444', fontSize: '26px', fontWeight: 'bold' }}>
+                  {dashboardStats.netProfit?.toLocaleString() || 0} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>ج.م</span>
+                </div>
               </div>
             </div>
           )}

@@ -2,6 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { 
+  ReceiptRefundIcon, 
+  BanknotesIcon, 
+  PlusCircleIcon,
+  TagIcon
+} from '@heroicons/react/24/outline';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -63,11 +69,92 @@ const Expenses = () => {
 
   if (loading) return <div className="page">جاري التحميل...</div>;
 
+  const totalExpensesAmount = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+
   return (
     <div className="page">
-      <div className="page-header">
-        <div><div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>تسجيل رواتب ومسحوبات الموظفين وأي مصروفات أخرى</div></div>
+      <div className="page-header" style={{ marginBottom: '24px' }}>
+        <div><div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>تسجيل رواتب ومسحوبات الموظفين وأي مصروفات تشغيلية</div></div>
         <h1>المصروفات (Expenses)</h1>
+      </div>
+
+      {/* Stats row */}
+      <div className="cards-grid" style={{ marginBottom: '24px' }}>
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              إجمالي المصروفات المسجلة
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ef4444',
+              boxShadow: '0 4px 14px rgba(239,68,68,0.2)'
+            }}>
+              <ReceiptRefundIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#ef4444', fontSize: '26px', fontWeight: 'bold' }}>
+            {totalExpensesAmount.toLocaleString()} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>ج.م</span>
+          </div>
+        </div>
+
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              عدد بنود المصروفات
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f59e0b',
+              boxShadow: '0 4px 14px rgba(245,158,11,0.2)'
+            }}>
+              <TagIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#f59e0b', fontSize: '26px', fontWeight: 'bold' }}>
+            {expenses.length}
+          </div>
+        </div>
       </div>
 
       <form className="form-card" onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>

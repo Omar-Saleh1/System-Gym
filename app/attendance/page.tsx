@@ -5,7 +5,15 @@ import api from '../../lib/axios';
 import CameraQRScanner from '../../components/CameraQRScanner';
 import ConfirmModal from '../../components/ConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
-import { SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { 
+  SparklesIcon, 
+  TrashIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  CameraIcon,
+  QrCodeIcon
+} from '@heroicons/react/24/outline';
 
 const Attendance = () => {
   const [records, setRecords] = useState<any[]>([]);
@@ -211,27 +219,156 @@ const Attendance = () => {
 
       {/* Stats row */}
       <div className="cards-grid" style={{ marginBottom: '24px' }}>
-        <div className="stat-card">
-          <div className="stat-value">{records.length}</div>
-          <div className="stat-label">حضور الأعضاء اليوم</div>
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(59, 130, 246, 0.2)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              حضور الأعضاء اليوم
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#3b82f6',
+              boxShadow: '0 4px 14px rgba(59,130,246,0.2)'
+            }}>
+              <UserGroupIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#3b82f6', fontSize: '26px', fontWeight: 'bold' }}>
+            {records.length}
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: '#22c55e' }}>
+
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(34, 197, 94, 0.2)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              أعضاء نشطين حاضرين
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#22c55e',
+              boxShadow: '0 4px 14px rgba(34,197,94,0.2)'
+            }}>
+              <CheckCircleIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#22c55e', fontSize: '26px', fontWeight: 'bold' }}>
             {records.filter(r => r.member?.membershipStatus === 'Active').length}
           </div>
-          <div className="stat-label">أعضاء نشطين حاضرين</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: '#f59e0b' }}>
-            {singleVisits.length}
+
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(245, 158, 11, 0.2)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              حصص فردية اليوم
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f59e0b',
+              boxShadow: '0 4px 14px rgba(245,158,11,0.2)'
+            }}>
+              <SparklesIcon style={{ width: '22px', height: '22px' }} />
+            </div>
           </div>
-          <div className="stat-label">حصص فردية اليوم ({totalVisitRevenue} ج.م)</div>
+          <div className="stat-value" style={{ color: '#f59e0b', fontSize: '26px', fontWeight: 'bold' }}>
+            {singleVisits.length} <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'normal' }}>({totalVisitRevenue} ج.م)</span>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: '#ef4444' }}>
+
+        <div 
+          className="stat-card"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              عضويات منتهية / مجمدة
+            </div>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ef4444',
+              boxShadow: '0 4px 14px rgba(239,68,68,0.2)'
+            }}>
+              <ExclamationCircleIcon style={{ width: '22px', height: '22px' }} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#ef4444', fontSize: '26px', fontWeight: 'bold' }}>
             {records.filter(r => r.member && r.member.membershipStatus !== 'Active').length}
           </div>
-          <div className="stat-label">عضويات منتهية/مجمدة</div>
         </div>
       </div>
 
