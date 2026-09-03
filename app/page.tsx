@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import api from '../lib/axios';
+import SingleVisitModal from '../components/SingleVisitModal';
 import { 
   CurrencyDollarIcon, 
   DocumentTextIcon, 
@@ -8,7 +9,8 @@ import {
   CheckCircleIcon, 
   ClockIcon, 
   ClipboardDocumentCheckIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
@@ -16,8 +18,9 @@ const Dashboard = () => {
   const [attStats, setAttStats] = useState<any>(null);
   const [payStats, setPayStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
 
-  useEffect(() => {
+  const loadAll = () => {
     Promise.all([
       api.get('/reports/dashboard').catch(() => ({ data: {} })),
       api.get('/attendance/stats').catch(() => ({ data: { stats: {} } })),
@@ -27,12 +30,17 @@ const Dashboard = () => {
       setAttStats(res2.data.stats);
       setPayStats(res3.data.data);
     }).finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAll();
   }, []);
 
   if (loading) return <div className="page">جاري التحميل...</div>;
 
   const topCards = [
-    { label: 'إيراد النهاردة', value: `${payStats?.todayRevenue?.toLocaleString() || 0}`, sub: 'ج.م', icon: <CurrencyDollarIcon /> },
+    { label: 'إجمالي إيراد النهاردة', value: `${payStats?.todayRevenue?.toLocaleString() || 0}`, sub: 'ج.م', icon: <CurrencyDollarIcon /> },
+    { label: 'حصص فردية النهاردة', value: stats?.todaySingleVisitsCount || 0, sub: `${stats?.todaySingleVisitsRevenue || 0} ج.م`, icon: <SparklesIcon /> },
     { label: 'عمليات بيع النهاردة', value: stats?.todaySalesCount || 0, sub: '', icon: <DocumentTextIcon /> },
     { label: 'إجمالي الأعضاء', value: stats?.totalMembers || 0, sub: '', icon: <UserGroupIcon /> },
     { label: 'اشتراكات نشطة', value: stats?.activeSubscriptions || 0, sub: '', icon: <CheckCircleIcon /> },
@@ -41,7 +49,29 @@ const Dashboard = () => {
 
   return (
     <div className="page">
-      <h1 style={{ textAlign: 'right' }}>لوحة التحكم</h1>
+      <div className="page-header" style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => setShowSingleVisitModal(true)}
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#fff',
+            border: 'none',
+            fontWeight: 'bold',
+            padding: '11px 20px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+            fontSize: '14px',
+          }}
+        >
+          <SparklesIcon style={{ width: '20px', height: '20px' }} />
+          ⚡ ➕ حصة فردية (Single Visit)
+        </button>
+        <h1 style={{ textAlign: 'right', margin: 0 }}>لوحة التحكم</h1>
+      </div>
       
       <div className="cards-grid">
         {topCards.map((c) => (
@@ -97,6 +127,11 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <SingleVisitModal
+        open={showSingleVisitModal}
+        onClose={() => setShowSingleVisitModal(false)}
+        onSuccess={() => loadAll()}
+      />
     </div>
   );
 };

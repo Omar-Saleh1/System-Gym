@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import MemberQRModal from '../../components/MemberQRModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import SingleVisitModal from '../../components/SingleVisitModal';
+import { MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 
@@ -16,6 +17,7 @@ const Members = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
   const [qrMember, setQrMember] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -102,9 +104,30 @@ const Members = () => {
   return (
     <div className="page">
       <div className="page-header">
-        <button onClick={() => { setShowForm(!showForm); setEditingId(null); setForm(emptyForm); setErrorMessage(''); }}>
-          {showForm ? 'إلغاء' : '+ عضو جديد'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => setShowSingleVisitModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 'bold',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+            }}
+          >
+            <SparklesIcon style={{ width: '18px', height: '18px' }} />
+            ⚡ + حصة فردية (Single Visit)
+          </button>
+          <button onClick={() => { setShowForm(!showForm); setEditingId(null); setForm(emptyForm); setErrorMessage(''); }}>
+            {showForm ? 'إلغاء' : '+ عضو جديد'}
+          </button>
+        </div>
         <h1>الأعضاء</h1>
       </div>
 
@@ -219,6 +242,11 @@ const Members = () => {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      <SingleVisitModal
+        open={showSingleVisitModal}
+        onClose={() => setShowSingleVisitModal(false)}
+      />
     </div>
   );
 };

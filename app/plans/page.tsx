@@ -213,10 +213,8 @@ const Plans = () => {
                         <td>{p.days?.length || 0} أيام</td>
                         <td><span className={'badge ' + statusBadge(p.status)}>{p.status}</span></td>
                         <td>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            {p.status === 'ACTIVE' && <button className="btn-3d btn-3d-unfreeze" onClick={() => completeWorkout(p._id)}>✓ إكمال</button>}
-                            <button className="btn-3d btn-3d-delete" onClick={() => deleteWorkout(p._id, p.planName)}>🗑️ حذف</button>
-                          </div>
+                          {p.status === 'ACTIVE' && <button className="btn-small" onClick={() => completeWorkout(p._id)}>إكمال</button>}
+                          <button className="btn-small btn-danger" onClick={() => deleteWorkout(p._id, p.planName)} style={{ marginRight: '4px' }}>حذف</button>
                         </td>
                       </tr>
                     ))}
@@ -289,7 +287,7 @@ const Plans = () => {
                         <td>{p.calories || '-'}</td>
                         <td>{p.protein || '-'}</td>
                         <td><span className={'badge ' + statusBadge(p.status)}>{p.status}</span></td>
-                        <td><button className="btn-3d btn-3d-delete" onClick={() => deleteDiet(p._id, p.planName)}>🗑️ حذف</button></td>
+                        <td><button className="btn-small btn-danger" onClick={() => deleteDiet(p._id, p.planName)}>حذف</button></td>
                       </tr>
                     ))}
                   </tbody>

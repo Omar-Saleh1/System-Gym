@@ -6,6 +6,7 @@ import api from '../../lib/axios';
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_LABELS: Record<string, string> = {
   subscription: 'اشتراكات أعضاء',
+  single_visit: 'حصص فردية (Day Pass)',
   renewal: 'تجديد اشتراكات',
   coach_salary: 'رواتب كباتن',
   rent: 'إيجار',
@@ -188,7 +189,8 @@ const DailyReportPanel = () => {
               color={report.financial.netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}
               emoji={report.financial.netProfit >= 0 ? '📈' : '📉'}
             />
-            <StatCard label="حضور اليوم" value={report.attendance.totalVisits} emoji="🏃" />
+            <StatCard label="حصص فردية (Day Pass)" value={report.singleVisits?.count || 0} sub={`${(report.singleVisits?.revenue || 0).toLocaleString()} ج.م`} color="#f59e0b" emoji="⚡" />
+            <StatCard label="حضور الأعضاء" value={report.attendance.totalVisits} emoji="🏃" />
             <StatCard label="أعضاء مختلفين" value={report.attendance.uniqueVisitors} emoji="👤" />
             <StatCard label="اشتراكات جديدة" value={report.subscriptions.count} emoji="📋" />
             <StatCard label="أعضاء جدد" value={report.newMembers.count} emoji="🆕" />
@@ -282,6 +284,53 @@ const DailyReportPanel = () => {
             )}
           </SectionCard>
 
+          {/* ── Single Visits (حصص فردية) ── */}
+          {report.singleVisits && (
+            <SectionCard title={`⚡ الحصص الفردية في هذا اليوم (${report.singleVisits.count}) — إجمالي: ${report.singleVisits.revenue.toLocaleString()} ج.م`}>
+              {report.singleVisits.list.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)' }}>لا توجد حصص فردية مسجلة في هذا اليوم</div>
+              ) : (
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>اسم الزائر / اللاعب</th>
+                        <th>الموبايل</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الشفت</th>
+                        <th>وقت الدخول</th>
+                        <th>الكاشير</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.singleVisits.list.map((v: any) => (
+                        <tr key={v._id}>
+                          <td style={{ fontWeight: 'bold' }}>{v.name}</td>
+                          <td>{v.phone || <span style={{ color: 'var(--text-muted)' }}>بدون رقم</span>}</td>
+                          <td style={{ color: 'var(--success)', fontWeight: 'bold' }}>{v.amount.toLocaleString()} ج.م</td>
+                          <td>{METHOD_LABELS[v.paymentMethod] || v.paymentMethod}</td>
+                          <td>
+                            <span className="badge badge-secondary" style={{
+                              color: v.shiftType === 'GIRLS' ? '#ec4899' : '#3b82f6',
+                              background: v.shiftType === 'GIRLS' ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)'
+                            }}>
+                              {v.shiftType === 'GIRLS' ? '🌸 بنات' : '🏋️‍♂️ شباب'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '12px' }}>
+                            {new Date(v.visitedAt || v.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td>{v.createdBy?.name || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </SectionCard>
+          )}
+
           {/* All Transactions */}
           <SectionCard title={`📋 جميع المعاملات (${report.transactions.length})`}>
             {report.transactions.length === 0 ? (
@@ -294,7 +343,7 @@ const DailyReportPanel = () => {
                       <th>الوقت</th>
                       <th>النوع</th>
                       <th>التصنيف</th>
-                      <th>العضو / الكابتن</th>
+                      <th>العضو / الزائر / الكابتن</th>
                       <th>المبلغ</th>
                       <th>طريقة الدفع</th>
                       <th>ملاحظات</th>
@@ -310,7 +359,7 @@ const DailyReportPanel = () => {
                           {tx.type === 'income' ? '📥 إيراد' : '📤 مصروف'}
                         </td>
                         <td>{CATEGORY_LABELS[tx.category] || tx.category}</td>
-                        <td>{tx.memberId?.name || tx.coachId?.name || '-'}</td>
+                        <td>{(tx.memberId as any)?.name || tx.customerName || (tx.coachId as any)?.name || tx.description || '-'}</td>
                         <td style={{ fontWeight: 'bold', color: tx.type === 'income' ? 'var(--success)' : 'var(--danger)' }}>
                           {tx.amount.toLocaleString()} ج.م
                         </td>

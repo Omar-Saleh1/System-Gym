@@ -1,16 +1,23 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import CameraQRScanner from '../../components/CameraQRScanner';
 import ConfirmModal from '../../components/ConfirmModal';
+import SingleVisitModal from '../../components/SingleVisitModal';
+import { SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const Attendance = () => {
   const [records, setRecords] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [singleVisits, setSingleVisits] = useState<any[]>([]);
+  const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
+  const [deleteVisitTarget, setDeleteVisitTarget] = useState<{ id: string; name: string } | null>(null);
+
   const [selectedMember, setSelectedMember] = useState('');
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [visitSearchQuery, setVisitSearchQuery] = useState('');
   const [showCamera, setShowCamera] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -28,16 +35,19 @@ const Attendance = () => {
   const loadData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const [recRes, memRes] = await Promise.all([
+      const [recRes, memRes, visitRes] = await Promise.all([
         api.get('/attendance', { params: { date: today } }),
         api.get('/members'),
+        api.get('/single-visits', { params: { date: 'today' } }).catch(() => ({ data: { data: [] } })),
       ]);
       setRecords(recRes.data || []);
       setMembers((memRes.data || []).filter((m: any) => m.active));
+      setSingleVisits(visitRes.data?.data || []);
     } catch (err) {
       console.error('Failed to load attendance data:', err);
       setRecords([]);
       setMembers([]);
+      setSingleVisits([]);
     }
   };
 
@@ -48,9 +58,7 @@ const Attendance = () => {
   // Keep scan input always focused — scanner acts as keyboard
   useEffect(() => {
     focusScanInput();
-    // Refocus whenever anything on the page is clicked
     const handleWindowClick = (e: any) => {
-      // Don't steal focus from search input or select/button elements
       const tag = e.target.tagName;
       if (tag === 'INPUT' && e.target !== scanInputRef.current) return;
       if (tag === 'SELECT' || tag === 'BUTTON') return;
@@ -84,12 +92,22 @@ const Attendance = () => {
     }
   };
 
+  const confirmDeleteSingleVisit = async () => {
+    if (!deleteVisitTarget) return;
+    try {
+      await api.delete(`/single-visits/${deleteVisitTarget.id}`);
+      setDeleteVisitTarget(null);
+      loadData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'فشل حذف سجل الحصة الفردية');
+    }
+  };
+
   const handleCheckout = async (memberId: string) => {
     await api.put(`/attendance/checkout/${memberId}`);
     loadData();
   };
 
-  // بيتنادى تلقائي لما جهاز السكانر "يكتب" الكود ويعمل Enter
   const handleScanSubmit = async (e: any) => {
     e.preventDefault();
     const code = scanValue.trim();
@@ -136,12 +154,19 @@ const Attendance = () => {
     r.member?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredVisits = singleVisits.filter(v =>
+    v.name?.toLowerCase().includes(visitSearchQuery.toLowerCase()) ||
+    (v.phone && v.phone.includes(visitSearchQuery))
+  );
+
   const formatTime = (dateStr: string) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '-';
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
   };
+
+  const totalVisitRevenue = singleVisits.reduce((acc, v) => acc + (v.amount || 0), 0);
 
   return (
     <div className="page">
@@ -151,44 +176,77 @@ const Attendance = () => {
           onClose={() => setShowCamera(false)}
         />
       )}
+
+      {/* Header with Quick Single Visit Action */}
       <div className="page-header">
         <div>
-          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>قم بمسح رمز الاستجابة السريعة (QR Code) لتسجيل الحضور.</div>
+          <button
+            onClick={() => setShowSingleVisitModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 'bold',
+              padding: '11px 20px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+              fontSize: '14px',
+            }}
+          >
+            <SparklesIcon style={{ width: '20px', height: '20px' }} />
+            ➕ حصة فردية (Single Visit)
+          </button>
         </div>
-        <h1>الحضور والانصراف (Attendance)</h1>
+        <div>
+          <h1>الحضور والانصراف (Attendance)</h1>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'right' }}>
+            مسح QR للأعضاء المشتركين وتسجيل الحصص الفردية للزوار.
+          </div>
+        </div>
       </div>
 
       {/* Stats row */}
       <div className="cards-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card">
           <div className="stat-value">{records.length}</div>
-          <div className="stat-label">إجمالي حضور اليوم (Today's Check-ins)</div>
+          <div className="stat-label">حضور الأعضاء اليوم</div>
         </div>
         <div className="stat-card">
           <div className="stat-value" style={{ color: '#22c55e' }}>
             {records.filter(r => r.member?.membershipStatus === 'Active').length}
           </div>
-          <div className="stat-label">أعضاء نشطين حاضرين (Active Members)</div>
+          <div className="stat-label">أعضاء نشطين حاضرين</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value" style={{ color: '#f59e0b' }}>
+            {singleVisits.length}
+          </div>
+          <div className="stat-label">حصص فردية اليوم ({totalVisitRevenue} ج.م)</div>
         </div>
         <div className="stat-card">
           <div className="stat-value" style={{ color: '#ef4444' }}>
             {records.filter(r => r.member && r.member.membershipStatus !== 'Active').length}
           </div>
-          <div className="stat-label">عضويات منتهية/أخرى (Expired/Other Members)</div>
+          <div className="stat-label">عضويات منتهية/مجمدة</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px', alignItems: 'start' }}>
+      {/* Grid: QR Scanner + Attendance */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px', alignItems: 'start', marginBottom: '32px' }}>
         {/* Attendance Table */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 'bold' }}>سجل الحضور اليوم</span>
+            <span style={{ fontSize: '15px', fontWeight: 'bold' }}>📋 سجل حضور الأعضاء المشتركين اليوم ({filteredRecords.length})</span>
             <input 
               type="text" 
-              placeholder="🔍 ابحث بالاسم في حضور اليوم..." 
+              placeholder="🔍 ابحث في حضور الأعضاء..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '250px', marginBottom: 0, padding: '8px 12px' }}
+              style={{ width: '220px', marginBottom: 0, padding: '8px 12px' }}
             />
           </div>
           <div className="table-container">
@@ -220,13 +278,13 @@ const Attendance = () => {
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
                         {!r.checkOutTime && r.member && (
-                          <button className="btn-3d btn-3d-freeze" onClick={() => handleCheckout(r.member._id)}>تسجيل انصراف</button>
+                          <button className="btn-small" onClick={() => handleCheckout(r.member._id)}>تسجيل انصراف</button>
                         )}
                         <button
-                          className="btn-3d btn-3d-delete"
+                          className="btn-small btn-danger"
                           onClick={() => setDeleteTarget({ id: r._id, name: r.member?.name || 'العضو' })}
                         >
-                          🗑️ حذف الحضور
+                          حذف
                         </button>
                       </div>
                     </td>
@@ -235,7 +293,7 @@ const Attendance = () => {
                 {filteredRecords.length === 0 && (
                   <tr>
                     <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                      {searchQuery ? 'لا توجد نتائج بحث مطابقة' : 'لا يوجد حضور مسجل اليوم بعد'}
+                      {searchQuery ? 'لا توجد نتائج بحث مطابقة' : 'لا يوجد حضور للأعضاء المشتركين مسجل اليوم بعد'}
                     </td>
                   </tr>
                 )}
@@ -244,10 +302,9 @@ const Attendance = () => {
           </div>
         </div>
 
-        {/* QR Scanner */}
+        {/* QR Scanner & Manual checkin */}
         <div>
           <div className="scan-box" style={{ marginBottom: '20px' }}>
-
             {/* Camera button */}
             <button
               onClick={() => setShowCamera(true)}
@@ -256,67 +313,34 @@ const Attendance = () => {
                 background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '10px',
-                padding: '12px',
-                fontSize: '15px',
+                padding: '12px 16px',
+                borderRadius: '12px',
                 fontWeight: 'bold',
-                fontFamily: 'Cairo, sans-serif',
                 cursor: 'pointer',
                 marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
+                fontSize: '14px',
               }}
             >
-              📷 سكان QR بالكاميرا (موبايل / لاب)
+              📷 مسح بكاميرا الموبايل / اللابتوب
             </button>
-            {/* Focus status indicator */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
-              fontSize: '13px',
-            }}>
-              <span style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: isScanFocused ? '#22c55e' : '#ef4444',
-                display: 'inline-block',
-                boxShadow: isScanFocused ? '0 0 6px #22c55e' : '0 0 6px #ef4444',
-              }} />
-              <span style={{ color: isScanFocused ? '#22c55e' : '#ef4444' }}>
-                {isScanFocused ? '🟢 جاهز للسكان — سكن الـ QR الآن' : '🔴 اضغط هنا أولاً لتفعيل السكان'}
-              </span>
-            </div>
 
             <div
+              className={`scan-area ${isScanFocused ? 'active' : ''}`}
               onClick={focusScanInput}
-              style={{
-                border: `2px solid ${isScanFocused ? 'var(--primary)' : 'var(--border-color)'}`,
-                borderRadius: '4px',
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: isScanFocused ? 'rgba(255,87,70,0.05)' : 'rgba(0,0,0,0.3)',
-                marginBottom: '16px',
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
+              style={{ cursor: 'pointer' }}
             >
-              {/* QR corner frames */}
-              <div style={{ position: 'absolute', top: '10px', right: '10px', width: '30px', height: '30px', borderTop: '3px solid var(--primary)', borderRight: '3px solid var(--primary)' }} />
-              <div style={{ position: 'absolute', top: '10px', left: '10px', width: '30px', height: '30px', borderTop: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)' }} />
-              <div style={{ position: 'absolute', bottom: '10px', right: '10px', width: '30px', height: '30px', borderBottom: '3px solid var(--primary)', borderRight: '3px solid var(--primary)' }} />
-              <div style={{ position: 'absolute', bottom: '10px', left: '10px', width: '30px', height: '30px', borderBottom: '3px solid var(--primary)', borderLeft: '3px solid var(--primary)' }} />
-              <form onSubmit={handleScanSubmit}>
+              <div className="scan-icon">⚡</div>
+              <div className="scan-label" style={{ fontWeight: 'bold' }}>
+                {isScanFocused ? 'جاهز للمسح من القارئ...' : 'اضغط لتفعيل القارئ السلكي'}
+              </div>
+              <form onSubmit={handleScanSubmit} style={{ margin: 0 }}>
                 <input
                   ref={scanInputRef}
+                  type="text"
                   value={scanValue}
                   onChange={(e) => setScanValue(e.target.value)}
                   onFocus={() => setIsScanFocused(true)}
@@ -349,7 +373,7 @@ const Attendance = () => {
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', textAlign: 'right' }}>أو اختر العضو يدوياً</div>
             <select value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)}>
               <option value="">اختر عضو</option>
-              {members.map((m) => <option key={m._id} value={m._id}>{m.name} - {m.phone}</option>)}
+              {members.map((m) => <option key={m._id} value={m._id}>{m.name} {m.phone ? `(${m.phone})` : ''}</option>)}
             </select>
             <button onClick={handleManualCheckin} style={{ width: '100%' }}>تسجيل حضور</button>
             {message && <div className="message" style={{ marginTop: '12px' }}>{message}</div>}
@@ -357,6 +381,104 @@ const Attendance = () => {
         </div>
       </div>
 
+      {/* ─── Today's Single Visits Section ─── */}
+      <div style={{ marginTop: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b' }}>
+              <SparklesIcon style={{ width: '22px', height: '22px' }} />
+              زيارات الحصة الواحدة اليوم — Day Passes ({singleVisits.length})
+            </h3>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              إجمالي إيراد الحصص الفردية اليوم: <strong style={{ color: '#22c55e' }}>{totalVisitRevenue} ج.م</strong>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input 
+              type="text" 
+              placeholder="🔍 ابحث بالاسم أو التليفون..." 
+              value={visitSearchQuery}
+              onChange={(e) => setVisitSearchQuery(e.target.value)}
+              style={{ width: '220px', marginBottom: 0, padding: '8px 12px' }}
+            />
+            <button
+              onClick={() => setShowSingleVisitModal(true)}
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 'bold',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '13px'
+              }}
+            >
+              + إضافة حصة فردية
+            </button>
+          </div>
+        </div>
+
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>اسم الزائر / اللاعب</th>
+                <th>الموبايل</th>
+                <th>المبلغ المدفوع</th>
+                <th>طريقة الدفع</th>
+                <th>الشفت</th>
+                <th>وقت الزيارة</th>
+                <th>الكاشير</th>
+                <th style={{ textAlign: 'center' }}>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredVisits.map((v) => (
+                <tr key={v._id}>
+                  <td style={{ fontWeight: 'bold', color: '#fff' }}>{v.name}</td>
+                  <td>{v.phone || <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>بدون رقم</span>}</td>
+                  <td><strong style={{ color: '#22c55e' }}>{v.amount} ج.م</strong></td>
+                  <td>
+                    <span className="badge badge-secondary">
+                      {v.paymentMethod === 'CASH' ? '💵 كاش' : v.paymentMethod === 'CARD' ? '💳 بطاقة' : v.paymentMethod}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-secondary" style={{
+                      color: v.shiftType === 'GIRLS' ? '#ec4899' : '#3b82f6',
+                      background: v.shiftType === 'GIRLS' ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)',
+                      borderColor: v.shiftType === 'GIRLS' ? '#fbcfe8' : '#bfdbfe'
+                    }}>
+                      {v.shiftType === 'GIRLS' ? '🌸 بنات' : '🏋️‍♂️ شباب'}
+                    </span>
+                  </td>
+                  <td>{formatTime(v.visitedAt || v.createdAt)}</td>
+                  <td>{v.createdBy?.name || 'الكاشير'}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      className="btn-small btn-danger"
+                      onClick={() => setDeleteVisitTarget({ id: v._id, name: v.name })}
+                    >
+                      <TrashIcon style={{ width: '14px', height: '14px', display: 'inline', marginLeft: '4px' }} />
+                      حذف
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredVisits.length === 0 && (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                    {visitSearchQuery ? 'لا توجد نتائج بحث مطابقة' : 'لا توجد حصص فردية مسجلة اليوم'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Delete Member Attendance Modal */}
       <ConfirmModal
         open={!!deleteTarget}
         type="danger"
@@ -366,6 +488,25 @@ const Attendance = () => {
         cancelText="إلغاء"
         onConfirm={confirmDeleteAttendance}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Delete Single Visit Modal */}
+      <ConfirmModal
+        open={!!deleteVisitTarget}
+        type="danger"
+        title="تأكيد حذف الحصة الفردية"
+        message={`هل أنت متأكد من حذف سجل الحصة الفردية لـ "${deleteVisitTarget?.name || ''}" وحذف المعاملة المالية المرتبطة بها؟`}
+        confirmText="نعم، حذف الحصة والمعاملة"
+        cancelText="إلغاء"
+        onConfirm={confirmDeleteSingleVisit}
+        onCancel={() => setDeleteVisitTarget(null)}
+      />
+
+      {/* Single Visit Modal */}
+      <SingleVisitModal
+        open={showSingleVisitModal}
+        onClose={() => setShowSingleVisitModal(false)}
+        onSuccess={() => loadData()}
       />
     </div>
   );
