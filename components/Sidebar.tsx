@@ -20,35 +20,10 @@ import {
   ReceiptRefundIcon,
 } from '@heroicons/react/24/outline';
 
-import ConfirmModal from './ConfirmModal';
-
 const Sidebar = () => {
   const { cashier, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallModal, setShowInstallModal] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstallApp = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
-        setDeferredPrompt(null);
-      }
-    } else {
-      setShowInstallModal(true);
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -122,13 +97,6 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <button
-          className="btn-add-member"
-          onClick={handleInstallApp}
-          style={{ marginBottom: '8px', background: 'linear-gradient(135deg, rgba(34,197,94,0.2) 0%, rgba(34,197,94,0.1) 100%)', borderColor: 'rgba(34,197,94,0.3)', color: '#22c55e' }}
-        >
-          📱 تثبيت تطبيق الموبايل
-        </button>
         <button className="btn-add-member" onClick={() => router.push('/members')} style={{ marginBottom: '10px' }}>
           ＋ إضافة عضو جديد
         </button>
@@ -137,21 +105,6 @@ const Sidebar = () => {
           تسجيل خروج
         </button>
       </div>
-      <ConfirmModal
-        open={showInstallModal}
-        type="info"
-        title="تثبيت تطبيق الموبايل"
-        message={
-          <div style={{ textAlign: 'right', fontSize: '13px', lineHeight: '1.8' }}>
-            <p><strong>📱 لتنزيل التطبيق على الهاتف:</strong></p>
-            <p style={{ marginTop: '8px' }}>• <strong>أندرويد (Chrome):</strong> اضغط الـ 3 نقاط بأعلى المتصفح ➔ اختر <em>"إضافة إلى الشاشة الرئيسية"</em>.</p>
-            <p style={{ marginTop: '4px' }}>• <strong>آيفون (Safari):</strong> اضغط زر المشاركة ⎋ بأسفل الشاشة ➔ اختر <em>"إضافة إلى الشاشة الرئيسية"</em>.</p>
-          </div>
-        }
-        confirmText="فهمت"
-        cancelText={null}
-        onConfirm={() => setShowInstallModal(false)}
-      />
     </div>
   );
 };
