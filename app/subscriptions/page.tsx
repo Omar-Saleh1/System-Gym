@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const Subscriptions = () => {
   const { cashier } = useAuth();
-  const isAdmin = cashier?.role === 'admin';
+  const isAdmin = cashier?.role === 'admin' || cashier?.shiftType === 'BOYS';
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
