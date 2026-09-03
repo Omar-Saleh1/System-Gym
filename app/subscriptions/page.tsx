@@ -2,8 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import ConfirmModal from '../../components/ConfirmModal';
+import { useAuth } from '../../context/AuthContext';
 
 const Subscriptions = () => {
+  const { cashier } = useAuth();
+  const isAdmin = cashier?.role === 'admin';
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -15,7 +20,8 @@ const Subscriptions = () => {
     pricePaid: '',
     paidAmount: '',
     paymentMethod: 'CASH',
-    notes: ''
+    notes: '',
+    startDate: todayStr,
   });
 
   const [showPlanForm, setShowPlanForm] = useState(false);
@@ -62,8 +68,8 @@ const Subscriptions = () => {
   const executeSubscribe = async () => {
     setConfirmOpen(false);
     try {
-      await api.post('/subscriptions', { memberId: form.memberId, planId: form.planId, pricePaid: Number(form.pricePaid), paidAmount: Number(form.paidAmount), paymentMethod: form.paymentMethod, notes: form.notes });
-      setForm({ memberId: '', planId: '', pricePaid: '', paidAmount: '', paymentMethod: 'CASH', notes: '' });
+      await api.post('/subscriptions', { memberId: form.memberId, planId: form.planId, pricePaid: Number(form.pricePaid), paidAmount: Number(form.paidAmount), paymentMethod: form.paymentMethod, notes: form.notes, startDate: form.startDate });
+      setForm({ memberId: '', planId: '', pricePaid: '', paidAmount: '', paymentMethod: 'CASH', notes: '', startDate: todayStr });
       setShowForm(false);
       loadAll();
     } catch (err: any) { setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء الاشتراك'); }
@@ -267,7 +273,7 @@ const Subscriptions = () => {
                         <td>{p.subscriptionType === 'sessions' ? `${p.sessionsLimit || 0} حصة` : `${p.durationInDays || 0} يوم`}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{p.price} ج.م</td>
                         <td style={{ textAlign: 'center' }}>
-                          <button className="btn-3d btn-3d-delete" onClick={() => handleDeletePlan(p._id, p.name)}>
+                          <button className="btn-small btn-danger" onClick={() => handleDeletePlan(p._id, p.name)}>
                             🗑️ حذف الخطة
                           </button>
                         </td>
@@ -318,6 +324,15 @@ const Subscriptions = () => {
           </div>
           <div className="form-row">
             <div style={{ flex: 2 }}><label>ملاحظات</label><input type="text" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="اكتب أي ملاحظات هنا..." /></div>
+            {isAdmin && (
+              <div>
+                <label>📅 تاريخ الاشتراك</label>
+                <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} max={todayStr} />
+                {form.startDate !== todayStr && (
+                  <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px' }}>⚠️ تاريخ قديم — سيُسجَّل بتاريخ {form.startDate}</div>
+                )}
+              </div>
+            )}
           </div>
           <button type="submit">تأكيد الاشتراك</button>
         </form>
@@ -362,10 +377,10 @@ const Subscriptions = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button className="btn-3d btn-3d-edit" onClick={() => openEditModal(s)}>✏️ تعديل</button>
-                      {s.status === 'active' && !expired && <button className="btn-3d btn-3d-freeze" onClick={() => handleFreeze(s._id)}>❄️ تجميد</button>}
-                      {s.status === 'frozen' && <button className="btn-3d btn-3d-unfreeze" onClick={() => handleUnfreeze(s._id)}>🔥 تشغيل</button>}
-                      <button className="btn-3d btn-3d-delete" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
+                      <button className="btn-small" onClick={() => openEditModal(s)} style={{ background: '#8b5cf6', color: '#fff' }}>✏️ تعديل</button>
+                      {s.status === 'active' && !expired && <button className="btn-small" onClick={() => handleFreeze(s._id)} style={{ background: '#3b82f6', color: '#fff' }}>❄️ تجميد</button>}
+                      {s.status === 'frozen' && <button className="btn-small" onClick={() => handleUnfreeze(s._id)} style={{ background: '#22c55e', color: '#fff' }}>🔥 تشغيل</button>}
+                      <button className="btn-small btn-danger" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
                     </div>
                   </td>
                 </tr>
