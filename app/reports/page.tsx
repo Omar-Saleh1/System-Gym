@@ -295,6 +295,7 @@ const DailyReportPanel = () => {
                     <thead>
                       <tr>
                         <th>اسم الزائر / اللاعب</th>
+                        <th>نوع الحصة</th>
                         <th>الموبايل</th>
                         <th>المبلغ</th>
                         <th>طريقة الدفع</th>
@@ -307,6 +308,11 @@ const DailyReportPanel = () => {
                       {report.singleVisits.list.map((v: any) => (
                         <tr key={v._id}>
                           <td style={{ fontWeight: 'bold' }}>{v.name}</td>
+                          <td>
+                            <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                              {v.sessionName || 'حصة عامة'}
+                            </span>
+                          </td>
                           <td>{v.phone || <span style={{ color: 'var(--text-muted)' }}>بدون رقم</span>}</td>
                           <td style={{ color: 'var(--success)', fontWeight: 'bold' }}>{v.amount.toLocaleString()} ج.م</td>
                           <td>{METHOD_LABELS[v.paymentMethod] || v.paymentMethod}</td>

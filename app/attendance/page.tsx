@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
@@ -424,6 +424,7 @@ const Attendance = () => {
             <thead>
               <tr>
                 <th>اسم الزائر / اللاعب</th>
+                <th>نوع / اسم الحصة</th>
                 <th>الموبايل</th>
                 <th>المبلغ المدفوع</th>
                 <th>طريقة الدفع</th>
@@ -437,6 +438,11 @@ const Attendance = () => {
               {filteredVisits.map((v) => (
                 <tr key={v._id}>
                   <td style={{ fontWeight: 'bold', color: '#fff' }}>{v.name}</td>
+                  <td>
+                    <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', fontWeight: 'bold' }}>
+                      {v.sessionName || 'حصة عامة'}
+                    </span>
+                  </td>
                   <td>{v.phone || <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>بدون رقم</span>}</td>
                   <td><strong style={{ color: '#22c55e' }}>{v.amount} ج.م</strong></td>
                   <td>
@@ -458,7 +464,7 @@ const Attendance = () => {
                   <td style={{ textAlign: 'center' }}>
                     <button
                       className="btn-small btn-danger"
-                      onClick={() => setDeleteVisitTarget({ id: v._id, name: v.name })}
+                      onClick={() => setDeleteVisitTarget({ id: v._id, name: `${v.name} (${v.sessionName || 'حصة'})` })}
                     >
                       <TrashIcon style={{ width: '14px', height: '14px', display: 'inline', marginLeft: '4px' }} />
                       حذف
@@ -468,7 +474,7 @@ const Attendance = () => {
               ))}
               {filteredVisits.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '16px' }}>
                     {visitSearchQuery ? 'لا توجد نتائج بحث مطابقة' : 'لا توجد حصص فردية مسجلة اليوم'}
                   </td>
                 </tr>

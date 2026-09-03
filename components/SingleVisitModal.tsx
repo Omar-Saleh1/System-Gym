@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../lib/axios';
 import { useAuth } from '../context/AuthContext';
@@ -30,6 +30,7 @@ export default function SingleVisitModal({
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState('');
+  const [sessionName, setSessionName] = useState('حديد');
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState<number | string>(defaultAmount);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'BANK_TRANSFER' | 'ONLINE' | 'OTHER'>('CASH');
@@ -40,9 +41,12 @@ export default function SingleVisitModal({
   const [errorMsg, setErrorMsg] = useState('');
   const [successData, setSuccessData] = useState<any>(null);
 
+  const quickSessions = ['حديد', 'كارديو', 'كلاسات', 'فتنس', 'زومبا', 'شامل', 'حصة عامة'];
+
   useEffect(() => {
     if (open) {
       setName('');
+      setSessionName('حديد');
       setPhone('');
       setAmount(defaultAmount);
       setPaymentMethod('CASH');
@@ -89,6 +93,7 @@ export default function SingleVisitModal({
     try {
       const payload: any = {
         name: name.trim(),
+        sessionName: sessionName.trim() || 'حصة عامة',
         phone: phone.trim(),
         amount: numAmount,
         paymentMethod,
@@ -275,6 +280,55 @@ export default function SingleVisitModal({
                 />
               </div>
 
+              {/* Session / Class Name Field */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted, #9ca3af)', marginBottom: '6px' }}>
+                  <SparklesIcon style={{ width: '16px' }} />
+                  اسم / نوع الحصة
+                </label>
+                <input
+                  type="text"
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  placeholder="مثال: حديد، كارديو، كلاسات، زومبا..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input, #252533)',
+                    border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                    color: '#fff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    marginBottom: '8px'
+                  }}
+                />
+                {/* Quick selection pills */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {quickSessions.map((qs) => (
+                    <button
+                      key={qs}
+                      type="button"
+                      onClick={() => setSessionName(qs)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid',
+                        borderColor: sessionName === qs ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                        background: sessionName === qs ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.04)',
+                        color: sessionName === qs ? '#f59e0b' : 'var(--text-muted, #9ca3af)',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        fontWeight: sessionName === qs ? 'bold' : 'normal'
+                      }}
+                    >
+                      {qs}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Phone Field */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted, #9ca3af)', marginBottom: '6px' }}>
@@ -425,6 +479,11 @@ export default function SingleVisitModal({
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ color: 'var(--text-muted, #9ca3af)' }}>العميل / الزائر:</span>
                   <strong style={{ color: '#fff', fontSize: '14px' }}>{successData.name}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <span style={{ color: 'var(--text-muted, #9ca3af)' }}>نوع / اسم الحصة:</span>
+                  <strong style={{ color: '#f59e0b', fontSize: '14px' }}>{successData.sessionName || 'حصة عامة'}</strong>
                 </div>
 
                 {successData.phone && (
