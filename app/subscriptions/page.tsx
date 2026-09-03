@@ -296,7 +296,7 @@ const Subscriptions = () => {
               <label>العضو</label>
               <select value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })} required>
                 <option value="">اختر عضو</option>
-                {members.map((m) => <option key={m._id} value={m._id}>{m.name} {m.phone ? `(${m.phone})` : '(بدون رقم)'}</option>)}
+                {members.map((m) => <option key={m._id} value={m._id}>{m.name} - {m.phone}</option>)}
               </select>
             </div>
             <div>

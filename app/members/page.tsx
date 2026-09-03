@@ -37,17 +37,15 @@ const Members = () => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (form.name.trim().length < 2) {
-      setErrorMessage('الاسم يجب أن يكون مكون من حرفين على الأقل');
+    if (form.name.trim().length < 3) {
+      setErrorMessage('الاسم يجب أن يكون مكون من 3 حروف على الأقل');
       return;
     }
 
-    if (form.phone && form.phone.trim() !== '') {
-      const phoneRegex = /^01[0125]\d{8}$/;
-      if (!phoneRegex.test(form.phone.trim())) {
-        setErrorMessage('رقم الموبايل غير صحيح. يجب أن يكون رقم مصري مكون من 11 رقم يبدأ بـ 01');
-        return;
-      }
+    const phoneRegex = /^01[0125]\d{8}$/;
+    if (!phoneRegex.test(form.phone.trim())) {
+      setErrorMessage('رقم الموبايل غير صحيح. يجب أن يكون رقم مصري مكون من 11 رقم يبدأ بـ 01');
+      return;
     }
 
     if (form.email && form.email.trim() !== '') {
@@ -71,10 +69,7 @@ const Members = () => {
         setEditingId(null);
         setShowForm(false);
         loadMembers(search);
-        // Only show QR modal if phone exists or user wants it
-        if (data.phone) {
-          setQrMember(data);
-        }
+        setQrMember(data);
       }
     } catch (err: any) {
       console.error(err);
@@ -85,7 +80,7 @@ const Members = () => {
   const handleEdit = (m: any) => {
     setForm({
       name: m.name,
-      phone: m.phone || '',
+      phone: m.phone,
       email: m.email || '',
       gender: m.gender,
       address: m.address || '',
@@ -108,9 +103,9 @@ const Members = () => {
     <div className="page">
       <div className="page-header">
         <button onClick={() => { setShowForm(!showForm); setEditingId(null); setForm(emptyForm); setErrorMessage(''); }}>
-          {showForm ? 'إلغاء' : '+ عضو / زائر جديد'}
+          {showForm ? 'إلغاء' : '+ عضو جديد'}
         </button>
-        <h1>الأعضاء والزوار</h1>
+        <h1>الأعضاء</h1>
       </div>
 
       {showForm && (
@@ -122,12 +117,12 @@ const Members = () => {
           )}
           <div className="form-row">
             <div>
-              <label>الاسم (إجباري)</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="اسم العضو أو الزائر" />
+              <label>الاسم</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
             </div>
             <div>
-              <label>رقم الموبايل (اختياري)</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01xxxxxxxxx (اختياري للزيارة/الحصة)" />
+              <label>رقم الموبايل</label>
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
             </div>
           </div>
           <div className="form-row">
@@ -156,7 +151,7 @@ const Members = () => {
           <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           <label>ملاحظات</label>
           <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          <button type="submit">{editingId ? 'حفظ التعديل' : 'إضافة العضو / الحصة'}</button>
+          <button type="submit">{editingId ? 'حفظ التعديل' : 'إضافة العضو'}</button>
         </form>
       )}
 
@@ -181,7 +176,7 @@ const Members = () => {
             {members.map((m) => (
               <tr key={m._id}>
                 <td style={{ fontWeight: 'bold' }}>{m.name}</td>
-                <td>{m.phone || <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>بدون رقم</span>}</td>
+                <td>{m.phone}</td>
                 <td>{m.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
                 <td>
                   {m.shiftType === 'GIRLS' ? (
@@ -194,15 +189,17 @@ const Members = () => {
                 </td>
                 <td>{new Date(m.createdAt).toLocaleDateString('ar-EG')}</td>
                 <td>
-                  <button className="btn-small" onClick={() => router.push(`/members/${m._id}/profile`)}>البروفايل</button>
-                  <button className="btn-small" onClick={() => setQrMember(m)}>QR</button>
-                  <button className="btn-small" onClick={() => handleEdit(m)}>تعديل</button>
-                  <button
-                    className="btn-small btn-danger"
-                    onClick={() => setDeleteTarget({ id: m._id, name: m.name })}
-                  >
-                    حذف
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <button className="btn-3d btn-3d-profile" onClick={() => router.push(`/members/${m._id}/profile`)}>👤 البروفايل</button>
+                    <button className="btn-3d btn-3d-qr" onClick={() => setQrMember(m)}>📱 QR</button>
+                    <button className="btn-3d btn-3d-edit" onClick={() => handleEdit(m)}>✏️ تعديل</button>
+                    <button
+                      className="btn-3d btn-3d-delete"
+                      onClick={() => setDeleteTarget({ id: m._id, name: m.name })}
+                    >
+                      🗑️ حذف
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
