@@ -1,10 +1,19 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import MemberQRModal from '../../components/MemberQRModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
-import { MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { 
+  MagnifyingGlassIcon, 
+  SparklesIcon, 
+  UserPlusIcon, 
+  XMarkIcon,
+  UserIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  MapPinIcon
+} from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 
@@ -16,66 +25,74 @@ const Members = () => {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
   const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
   const [qrMember, setQrMember] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const loadMembers = async (q = '') => {
-    const { data } = await api.get('/members', { params: q ? { search: q } : {} });
+    const { data } = await api.get('/members', { params: { search: q } });
     setMembers(data);
   };
 
-  useEffect(() => { loadMembers(); }, []);
+  useEffect(() => {
+    loadMembers();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     loadMembers(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleOpenAddModal = () => {
+    setEditingId(null);
+    setForm({
+      ...emptyForm,
+      shiftType: cashier?.role === 'admin' ? 'BOYS' : (cashier?.shiftType || 'BOYS'),
+    });
+    setErrorMessage('');
+    setShowMemberModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowMemberModal(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setErrorMessage('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (form.name.trim().length < 3) {
-      setErrorMessage('الاسم يجب أن يكون مكون من 3 حروف على الأقل');
+    if (!form.name || form.name.trim().length < 2) {
+      setErrorMessage('الاسم مطلوب ويجب أن يكون حرفين على الأقل');
       return;
     }
 
     const phoneRegex = /^01[0125]\d{8}$/;
-    if (!phoneRegex.test(form.phone.trim())) {
-      setErrorMessage('رقم الموبايل غير صحيح. يجب أن يكون رقم مصري مكون من 11 رقم يبدأ بـ 01');
+    if (!form.phone || !phoneRegex.test(form.phone.trim())) {
+      setErrorMessage('رقم الموبايل غير صحيح (11 رقم يبدأ بـ 01)');
       return;
     }
 
-    if (form.email && form.email.trim() !== '') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(form.email.trim())) {
-        setErrorMessage('البريد الإلكتروني غير صحيح');
-        return;
-      }
-    }
-
+    setIsSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/members/${editingId}`, form);
-        setForm(emptyForm);
-        setEditingId(null);
-        setShowForm(false);
-        loadMembers(search);
       } else {
-        const { data } = await api.post('/members', form);
-        setForm(emptyForm);
-        setEditingId(null);
-        setShowForm(false);
-        loadMembers(search);
-        setQrMember(data);
+        await api.post('/members', form);
       }
+      handleCloseModal();
+      loadMembers(search);
     } catch (err: any) {
-      console.error(err);
-      setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء حفظ البيانات');
+      const msg = err.response?.data?.message || (editingId ? 'حدث خطأ أثناء تعديل العضو' : 'حدث خطأ أثناء إضافة العضو');
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,14 +108,18 @@ const Members = () => {
     });
     setEditingId(m._id);
     setErrorMessage('');
-    setShowForm(true);
+    setShowMemberModal(true);
   };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    await api.delete(`/members/${deleteTarget.id}`);
-    setDeleteTarget(null);
-    loadMembers(search);
+    try {
+      await api.delete(`/members/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      loadMembers(search);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'فشل حذف العضو');
+    }
   };
 
   return (
@@ -124,59 +145,21 @@ const Members = () => {
             <SparklesIcon style={{ width: '18px', height: '18px' }} />
             ⚡ + حصة فردية (Single Visit)
           </button>
-          <button onClick={() => { setShowForm(!showForm); setEditingId(null); setForm(emptyForm); setErrorMessage(''); }}>
-            {showForm ? 'إلغاء' : '+ عضو جديد'}
+          <button 
+            onClick={handleOpenAddModal}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 'bold'
+            }}
+          >
+            <UserPlusIcon style={{ width: '18px', height: '18px' }} />
+            + عضو جديد
           </button>
         </div>
         <h1>الأعضاء</h1>
       </div>
-
-      {showForm && (
-        <form className="form-card" onSubmit={handleSubmit}>
-          {errorMessage && (
-            <div style={{ padding: '12px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '16px', textAlign: 'right', fontWeight: 'bold' }}>
-              {errorMessage}
-            </div>
-          )}
-          <div className="form-row">
-            <div>
-              <label>الاسم</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-            </div>
-            <div>
-              <label>رقم الموبايل</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-            </div>
-          </div>
-          <div className="form-row">
-            <div>
-              <label>الإيميل</label>
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-            <div>
-              <label>النوع</label>
-              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-                <option value="male">ذكر</option>
-                <option value="female">أنثى</option>
-              </select>
-            </div>
-            {cashier?.role === 'admin' && (
-              <div>
-                <label>الشفت (Admin Only)</label>
-                <select value={form.shiftType} onChange={(e) => setForm({ ...form, shiftType: e.target.value })}>
-                  <option value="GIRLS">🌸 شفت البنات (GIRLS)</option>
-                  <option value="BOYS">🏋️‍♂️ شفت الشباب (BOYS)</option>
-                </select>
-              </div>
-            )}
-          </div>
-          <label>العنوان</label>
-          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          <label>ملاحظات</label>
-          <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          <button type="submit">{editingId ? 'حفظ التعديل' : 'إضافة العضو'}</button>
-        </form>
-      )}
 
       <div className="search-box">
         <MagnifyingGlassIcon className="search-icon" />
@@ -232,6 +215,304 @@ const Members = () => {
           </tbody>
         </table>
       </div>
+
+      {/* ─── Member Add/Edit Popup Modal ─── */}
+      {showMemberModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          direction: 'rtl'
+        }}>
+          <div style={{
+            background: 'var(--bg-card, #1a1a24)',
+            border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '560px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            overflow: 'hidden',
+            animation: 'fadeIn 0.2s ease-out'
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(255,255,255,0.02)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  background: editingId ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 'linear-gradient(135deg, #ef4444, #b91c1c)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff'
+                }}>
+                  {editingId ? <UserIcon style={{ width: '22px', height: '22px' }} /> : <UserPlusIcon style={{ width: '22px', height: '22px' }} />}
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>
+                    {editingId ? 'تعديل بيانات العضو ✏️' : 'إضافة عضو جديد 👤'}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #9ca3af)', marginTop: '2px' }}>
+                    {editingId ? 'تحديث البيانات الأساسية للعضو' : 'تسجيل عضو جديد بالنظام وإصدار QR كود'}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted, #9ca3af)',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '8px'
+                }}
+              >
+                <XMarkIcon style={{ width: '22px', height: '22px' }} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+              {errorMessage && (
+                <div style={{
+                  padding: '12px 16px',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  color: '#ef4444',
+                  borderRadius: '10px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  textAlign: 'right'
+                }}>
+                  ⚠️ {errorMessage}
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                    <UserIcon style={{ width: '16px' }} />
+                    الاسم <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="اسم العضو ثلاثي"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'var(--bg-input, #252533)',
+                      border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                      color: '#fff',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                    <PhoneIcon style={{ width: '16px' }} />
+                    رقم الموبايل <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="01xxxxxxxxx"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'var(--bg-input, #252533)',
+                      border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                      color: '#fff',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: cashier?.role === 'admin' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                    <EnvelopeIcon style={{ width: '16px' }} />
+                    الإيميل <span style={{ fontSize: '11px', color: '#6b7280' }}>(اختياري)</span>
+                  </label>
+                  <input
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="example@gmail.com"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'var(--bg-input, #252533)',
+                      border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                      color: '#fff',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>النوع</label>
+                  <select
+                    value={form.gender}
+                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'var(--bg-input, #252533)',
+                      border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                      color: '#fff',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                  </select>
+                </div>
+
+                {cashier?.role === 'admin' && (
+                  <div>
+                    <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>الشفت (Admin)</label>
+                    <select
+                      value={form.shiftType}
+                      onChange={(e) => setForm({ ...form, shiftType: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input, #252533)',
+                        border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                        color: '#fff',
+                        fontSize: '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="BOYS">🏋️‍♂️ شباب (BOYS)</option>
+                      <option value="GIRLS">🌸 بنات (GIRLS)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                  <MapPinIcon style={{ width: '16px' }} />
+                  العنوان <span style={{ fontSize: '11px', color: '#6b7280' }}>(اختياري)</span>
+                </label>
+                <input
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  placeholder="العنوان أو المنطقة"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input, #252533)',
+                    border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                    color: '#fff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+                  ملاحظات <span style={{ fontSize: '11px', color: '#6b7280' }}>(اختياري)</span>
+                </label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="أي ملاحظات صحية أو إضافية عن العضو..."
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input, #252533)',
+                    border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                    color: '#fff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    flex: 2,
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: editingId ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 'linear-gradient(135deg, #ef4444, #b91c1c)',
+                    border: 'none',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    fontSize: '15px',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+                    opacity: isSubmitting ? 0.7 : 1
+                  }}
+                >
+                  {isSubmitting ? 'جاري الحفظ...' : (editingId ? '💾 حفظ التعديل' : '➕ إضافة العضو')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: 'var(--bg-input, #252533)',
+                    border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+                    color: 'var(--text-muted, #9ca3af)',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {qrMember && <MemberQRModal member={qrMember} onClose={() => setQrMember(null)} />}
 
