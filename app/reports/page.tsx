@@ -2,6 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import {
+  BanknotesIcon,
+  ReceiptRefundIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  SparklesIcon,
+  UserGroupIcon,
+  UsersIcon,
+  DocumentCheckIcon,
+  UserPlusIcon,
+  CheckBadgeIcon,
+  ClockIcon
+} from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_LABELS: Record<string, string> = {
@@ -43,15 +56,55 @@ const ARABIC_MONTHS = [
 ];
 
 // ─── Shared Components ────────────────────────────────────────────────────────
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  sub?: string;
+  color?: string;
+  icon?: React.ReactNode;
+  bgGradient?: string;
+}
+
 const StatCard = ({
-  label, value, sub, color, emoji
-}: { label: string; value: string | number; sub?: string; color?: string; emoji?: string }) => (
-  <div className="stat-card" style={{ borderColor: color }}>
-    {emoji && <div style={{ fontSize: '22px', marginBottom: '6px' }}>{emoji}</div>}
-    <div className="stat-label">{label}</div>
-    <div className="stat-value" style={{ color }}>
+  label, value, sub, color = 'var(--text)', icon, bgGradient = 'rgba(255,255,255,0.05)'
+}: StatCardProps) => (
+  <div className="stat-card" style={{
+    position: 'relative',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    padding: '20px',
+    borderRadius: '16px',
+    background: 'var(--bg-card)',
+    border: `1px solid ${color ? `${color}33` : 'var(--border-color)'}`,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+    transition: 'all 0.25s ease'
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+      <div className="stat-label" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+        {label}
+      </div>
+      {icon && (
+        <div style={{
+          width: '42px',
+          height: '42px',
+          borderRadius: '12px',
+          background: bgGradient,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: color || '#fff',
+          boxShadow: `0 4px 14px ${color ? `${color}25` : 'rgba(0,0,0,0.1)'}`
+        }}>
+          {React.cloneElement(icon as React.ReactElement, { style: { width: '22px', height: '22px' } })}
+        </div>
+      )}
+    </div>
+
+    <div className="stat-value" style={{ color: color || 'var(--text)', fontSize: '26px', fontWeight: 'bold' }}>
       {typeof value === 'number' ? value.toLocaleString() : value}
-      {sub && <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginRight: '4px' }}>{sub}</span>}
+      {sub && <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginRight: '4px', fontWeight: 'normal' }}>{sub}</span>}
     </div>
   </div>
 );
@@ -180,21 +233,73 @@ const DailyReportPanel = () => {
 
           {/* Summary Cards */}
           <div className="cards-grid" style={{ marginBottom: '24px' }}>
-            <StatCard label="إجمالي الإيرادات" value={report.financial.totalIncome} sub="ج.م" color="var(--success)" emoji="💰" />
-            <StatCard label="إجمالي المصروفات" value={report.financial.totalExpense} sub="ج.م" color="var(--danger)" emoji="💸" />
+            <StatCard 
+              label="إجمالي الإيرادات" 
+              value={report.financial.totalIncome} 
+              sub="ج.م" 
+              color="#22c55e" 
+              bgGradient="linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.08))"
+              icon={<BanknotesIcon />} 
+            />
+            <StatCard 
+              label="إجمالي المصروفات" 
+              value={report.financial.totalExpense} 
+              sub="ج.م" 
+              color="#ef4444" 
+              bgGradient="linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))"
+              icon={<ReceiptRefundIcon />} 
+            />
             <StatCard
               label="صافي الربح"
               value={report.financial.netProfit}
               sub="ج.م"
-              color={report.financial.netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}
-              emoji={report.financial.netProfit >= 0 ? '📈' : '📉'}
+              color={report.financial.netProfit >= 0 ? '#10b981' : '#ef4444'}
+              bgGradient={report.financial.netProfit >= 0 ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))'}
+              icon={report.financial.netProfit >= 0 ? <ArrowTrendingUpIcon /> : <ArrowTrendingDownIcon />}
             />
-            <StatCard label="حصص فردية (Day Pass)" value={report.singleVisits?.count || 0} sub={`${(report.singleVisits?.revenue || 0).toLocaleString()} ج.م`} color="#f59e0b" emoji="⚡" />
-            <StatCard label="حضور الأعضاء" value={report.attendance.totalVisits} emoji="🏃" />
-            <StatCard label="أعضاء مختلفين" value={report.attendance.uniqueVisitors} emoji="👤" />
-            <StatCard label="اشتراكات جديدة" value={report.subscriptions.count} emoji="📋" />
-            <StatCard label="أعضاء جدد" value={report.newMembers.count} emoji="🆕" />
-            <StatCard label="مدفوعات مسجلة" value={report.settledPayments.count} emoji="✅" />
+            <StatCard 
+              label="حصص فردية (Day Pass)" 
+              value={report.singleVisits?.count || 0} 
+              sub={`${(report.singleVisits?.revenue || 0).toLocaleString()} ج.م`} 
+              color="#f59e0b" 
+              bgGradient="linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08))"
+              icon={<SparklesIcon />} 
+            />
+            <StatCard 
+              label="حضور الأعضاء" 
+              value={report.attendance.totalVisits} 
+              color="#3b82f6"
+              bgGradient="linear-gradient(135deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))"
+              icon={<UserGroupIcon />} 
+            />
+            <StatCard 
+              label="أعضاء مختلفين" 
+              value={report.attendance.uniqueVisitors} 
+              color="#8b5cf6"
+              bgGradient="linear-gradient(135deg, rgba(139,92,246,0.25), rgba(139,92,246,0.08))"
+              icon={<UsersIcon />} 
+            />
+            <StatCard 
+              label="اشتراكات جديدة" 
+              value={report.subscriptions.count} 
+              color="#06b6d4"
+              bgGradient="linear-gradient(135deg, rgba(6,182,212,0.25), rgba(6,182,212,0.08))"
+              icon={<DocumentCheckIcon />} 
+            />
+            <StatCard 
+              label="أعضاء جدد" 
+              value={report.newMembers.count} 
+              color="#ec4899"
+              bgGradient="linear-gradient(135deg, rgba(236,72,153,0.25), rgba(236,72,153,0.08))"
+              icon={<UserPlusIcon />} 
+            />
+            <StatCard 
+              label="مدفوعات مسجلة" 
+              value={report.settledPayments.count} 
+              color="#10b981"
+              bgGradient="linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))"
+              icon={<CheckBadgeIcon />} 
+            />
           </div>
 
           {/* Income & Expense Breakdown */}
@@ -541,16 +646,66 @@ const MonthlyReportPanel = () => {
 
           {/* Summary */}
           <div className="cards-grid" style={{ marginBottom: '24px' }}>
-            <StatCard label="إجمالي الإيرادات" value={report.financial.totalIncome} sub="ج.م" color="var(--success)" emoji="💰" />
-            <StatCard label="إجمالي المصروفات" value={report.financial.totalExpense} sub="ج.م" color="var(--danger)" emoji="💸" />
-            <StatCard label="صافي الربح" value={report.financial.netProfit} sub="ج.م"
-              color={report.financial.netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}
-              emoji={report.financial.netProfit >= 0 ? '📈' : '📉'} />
-            <StatCard label="أعضاء جدد" value={report.members.newCount} emoji="🆕" />
-            <StatCard label="اشتراكات جديدة" value={report.subscriptions.count} emoji="📋" />
-            <StatCard label="إجمالي الزيارات" value={report.attendance.totalVisits} emoji="🏃" />
-            <StatCard label="زوار فريدون" value={report.attendance.uniqueVisitors} emoji="👤" />
-            <StatCard label="متوسط يومي" value={report.attendance.avgDailyVisits} emoji="📊" />
+            <StatCard 
+              label="إجمالي الإيرادات" 
+              value={report.financial.totalIncome} 
+              sub="ج.م" 
+              color="#22c55e" 
+              bgGradient="linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.08))"
+              icon={<BanknotesIcon />} 
+            />
+            <StatCard 
+              label="إجمالي المصروفات" 
+              value={report.financial.totalExpense} 
+              sub="ج.م" 
+              color="#ef4444" 
+              bgGradient="linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))"
+              icon={<ReceiptRefundIcon />} 
+            />
+            <StatCard 
+              label="صافي الربح" 
+              value={report.financial.netProfit} 
+              sub="ج.م"
+              color={report.financial.netProfit >= 0 ? '#10b981' : '#ef4444'}
+              bgGradient={report.financial.netProfit >= 0 ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))'}
+              icon={report.financial.netProfit >= 0 ? <ArrowTrendingUpIcon /> : <ArrowTrendingDownIcon />} 
+            />
+            <StatCard 
+              label="حصص فردية (Day Pass)" 
+              value={report.singleVisits?.count || 0} 
+              sub={`${(report.singleVisits?.revenue || 0).toLocaleString()} ج.م`} 
+              color="#f59e0b" 
+              bgGradient="linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08))"
+              icon={<SparklesIcon />} 
+            />
+            <StatCard 
+              label="أعضاء جدد" 
+              value={report.members.newCount} 
+              color="#ec4899" 
+              bgGradient="linear-gradient(135deg, rgba(236,72,153,0.25), rgba(236,72,153,0.08))"
+              icon={<UserPlusIcon />} 
+            />
+            <StatCard 
+              label="اشتراكات جديدة" 
+              value={report.subscriptions.count} 
+              color="#06b6d4" 
+              bgGradient="linear-gradient(135deg, rgba(6,182,212,0.25), rgba(6,182,212,0.08))"
+              icon={<DocumentCheckIcon />} 
+            />
+            <StatCard 
+              label="إجمالي الزيارات" 
+              value={report.attendance.totalVisits} 
+              color="#3b82f6" 
+              bgGradient="linear-gradient(135deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))"
+              icon={<UserGroupIcon />} 
+            />
+            <StatCard 
+              label="زوار فريدون" 
+              value={report.attendance.uniqueVisitors} 
+              color="#8b5cf6" 
+              bgGradient="linear-gradient(135deg, rgba(139,92,246,0.25), rgba(139,92,246,0.08))"
+              icon={<UsersIcon />} 
+            />
           </div>
 
           {/* Daily Chart */}
