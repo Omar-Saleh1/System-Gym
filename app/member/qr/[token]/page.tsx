@@ -61,6 +61,14 @@ const PublicMemberQR = () => {
   }
 
   if (error) {
+    const errorTitle = error.includes('معطل')
+      ? 'كود الـ QR معطل'
+      : error.includes('غير نشط')
+      ? 'حساب العضو غير نشط'
+      : error.includes('غير موجود')
+      ? 'العضو غير موجود'
+      : 'تعذر عرض كود الـ QR';
+
     return (
       <div style={{
         display: 'flex',
@@ -83,7 +91,7 @@ const PublicMemberQR = () => {
           width: '100%'
         }}>
           <div style={{ fontSize: '54px', marginBottom: '16px' }}>⚠️</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: '#ef4444' }}>الاشتراك غير صالح</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: '#ef4444' }}>{errorTitle}</h2>
           <p style={{ color: '#a1a1aa', fontSize: '14px', lineHeight: '1.6' }}>{error}</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import MemberQRModal from '../../components/MemberQRModal';
@@ -12,7 +12,11 @@ import {
   UserIcon,
   PhoneIcon,
   EnvelopeIcon,
-  MapPinIcon
+  MapPinIcon,
+  TrashIcon,
+  PencilSquareIcon,
+  QrCodeIcon,
+  IdentificationIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -196,14 +200,21 @@ const Members = () => {
                 <td>{new Date(m.createdAt).toLocaleDateString('ar-EG')}</td>
                 <td>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <button className="btn-3d btn-3d-profile" onClick={() => router.push(`/members/${m._id}/profile`)}>👤 البروفايل</button>
-                    <button className="btn-3d btn-3d-qr" onClick={() => setQrMember(m)}>📱 QR</button>
-                    <button className="btn-3d btn-3d-edit" onClick={() => handleEdit(m)}>✏️ تعديل</button>
+                    <button className="btn-3d btn-3d-profile" onClick={() => router.push(`/members/${m._id}/profile`)} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <IdentificationIcon style={{ width: '14px', height: '14px' }} /> البروفايل
+                    </button>
+                    <button className="btn-3d btn-3d-qr" onClick={() => setQrMember(m)} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <QrCodeIcon style={{ width: '14px', height: '14px' }} /> QR
+                    </button>
+                    <button className="btn-3d btn-3d-edit" onClick={() => handleEdit(m)} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <PencilSquareIcon style={{ width: '14px', height: '14px' }} /> تعديل
+                    </button>
                     <button
                       className="btn-3d btn-3d-delete"
                       onClick={() => setDeleteTarget({ id: m._id, name: m.name })}
+                      style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
                     >
-                      🗑️ حذف
+                      <TrashIcon style={{ width: '14px', height: '14px' }} /> حذف
                     </button>
                   </div>
                 </td>

@@ -7,7 +7,11 @@ import {
   BanknotesIcon,
   ReceiptRefundIcon,
   ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
+  ArrowTrendingDownIcon,
+  ChartBarIcon,
+  ClipboardDocumentListIcon,
+  MagnifyingGlassIcon,
+  ListBulletIcon
 } from '@heroicons/react/24/outline';
 
 const Payments = () => {
@@ -305,14 +309,16 @@ const Payments = () => {
           <button 
             className={activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'} 
             onClick={() => setActiveTab('dashboard')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            📊 لوحة التحكم المالية
+            <ChartBarIcon style={{ width: '18px', height: '18px' }} /> لوحة التحكم المالية
           </button>
           <button 
             className={activeTab === 'payments' ? 'btn-primary' : 'btn-secondary'} 
             onClick={() => setActiveTab('payments')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            💰 تسجيل وإدارة المقبوضات
+            <BanknotesIcon style={{ width: '18px', height: '18px' }} /> تسجيل وإدارة المقبوضات
           </button>
         </div>
         <h1>إدارة المالية والمدفوعات</h1>
@@ -483,7 +489,7 @@ const Payments = () => {
 
           {/* Filter Transactions Section */}
           <div className="form-card" style={{ marginBottom: '20px' }}>
-            <h3 style={{ marginBottom: '12px' }}>🔍 فلترة المعاملات</h3>
+            <h3 style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}><MagnifyingGlassIcon style={{ width: '18px', height: '18px' }} /> فلترة المعاملات</h3>
             <div className="form-row">
               <div>
                 <label>النوع</label>
@@ -529,7 +535,7 @@ const Payments = () => {
           </div>
 
           {/* Filtered Transactions List */}
-          <h3>📋 سجل المعاملات المالية</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ListBulletIcon style={{ width: '18px', height: '18px' }} /> سجل المعاملات المالية</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -631,7 +637,7 @@ const Payments = () => {
           </form>
 
           {/* Payments Table */}
-          <h3>📋 المقبوضات المسجلة للعملاء</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ListBulletIcon style={{ width: '18px', height: '18px' }} /> المقبوضات المسجلة للعملاء</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>

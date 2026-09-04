@@ -3,6 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import ConfirmModal from '../../components/ConfirmModal';
+import {
+  UserCircleIcon,
+  BanknotesIcon,
+  ListBulletIcon
+} from '@heroicons/react/24/outline';
 
 const CoachesAndSalaries = () => {
   const [activeTab, setActiveTab] = useState<'coaches' | 'salaries'>('coaches');
@@ -200,14 +205,16 @@ const CoachesAndSalaries = () => {
           <button 
             className={activeTab === 'coaches' ? 'btn-primary' : 'btn-secondary'} 
             onClick={() => setActiveTab('coaches')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            👤 إدارة الكباتن
+            <UserCircleIcon style={{ width: '18px', height: '18px' }} /> إدارة الكباتن
           </button>
           <button 
             className={activeTab === 'salaries' ? 'btn-primary' : 'btn-secondary'} 
             onClick={() => setActiveTab('salaries')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            💵 رواتب الكباتن
+            <BanknotesIcon style={{ width: '18px', height: '18px' }} /> رواتب الكباتن
           </button>
         </div>
         <h1>إدارة الكباتن والرواتب</h1>
@@ -233,7 +240,7 @@ const CoachesAndSalaries = () => {
           </form>
 
           {/* Coaches Table */}
-          <h3>📋 قائمة الكباتن الحالية</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ListBulletIcon style={{ width: '18px', height: '18px' }} /> قائمة الكباتن الحالية</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -317,7 +324,7 @@ const CoachesAndSalaries = () => {
           </form>
 
           {/* Salary List Table */}
-          <h3>📋 سجل صرف الرواتب للمدربين</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ListBulletIcon style={{ width: '18px', height: '18px' }} /> سجل صرف الرواتب للمدربين</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>
