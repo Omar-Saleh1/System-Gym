@@ -13,7 +13,9 @@ import {
   DocumentCheckIcon,
   UserPlusIcon,
   CheckBadgeIcon,
-  ClockIcon
+  ClockIcon,
+  ShoppingBagIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -29,6 +31,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   maintenance: 'صيانة',
   salaries: 'رواتب عمالة',
   marketing: 'تسويق',
+  store: 'مبيعات المتجر',
+  sales: 'مبيعات المتجر',
   other: 'أخرى',
 };
 
@@ -151,6 +155,7 @@ const DailyReportPanel = () => {
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadDailyReport = async (d: string, sFilter?: string) => {
     try {
@@ -168,7 +173,20 @@ const DailyReportPanel = () => {
     }
   };
 
-  useEffect(() => { loadDailyReport(todayStr); }, [shiftFilter]);
+  const handleDeleteSale = async (saleId: string) => {
+    if (!confirm('هل أنت متأكد من حذف عملية البيع هذه؟\nسيتم استرجاع الكميات للمخزون وخصم المبلغ من الإيراد.')) return;
+    setDeletingId(saleId);
+    try {
+      await api.delete(`/sales/${saleId}`);
+      await loadDailyReport(date, shiftFilter);
+    } catch (err: any) {
+      alert('خطأ في الحذف: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  useEffect(() => { loadDailyReport(todayStr); }, [shiftFilter]); // eslint-disable-line
 
   return (
     <div>
@@ -256,6 +274,14 @@ const DailyReportPanel = () => {
               color={report.financial.netProfit >= 0 ? '#10b981' : '#ef4444'}
               bgGradient={report.financial.netProfit >= 0 ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))'}
               icon={report.financial.netProfit >= 0 ? <ArrowTrendingUpIcon /> : <ArrowTrendingDownIcon />}
+            />
+            <StatCard 
+              label="مبيعات المتجر" 
+              value={report.sales?.count || 0} 
+              sub={`${(report.sales?.revenue || 0).toLocaleString()} ج.م`} 
+              color="#60a5fa" 
+              bgGradient="linear-gradient(135deg, rgba(96,165,250,0.25), rgba(96,165,250,0.08))"
+              icon={<ShoppingBagIcon />} 
             />
             <StatCard 
               label="حصص فردية (Day Pass)" 
@@ -433,6 +459,77 @@ const DailyReportPanel = () => {
                             {new Date(v.visitedAt || v.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                           </td>
                           <td>{v.createdBy?.name || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </SectionCard>
+          )}
+
+          {/* ── Store Sales (مبيعات المتجر) ── */}
+          {report.sales && (
+            <SectionCard title={`🛍️ مبيعات المتجر في هذا اليوم (${report.sales.count}) — إجمالي: ${report.sales.revenue.toLocaleString()} ج.م`}>
+              {report.sales.list.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)' }}>لا توجد مبيعات مسجلة في هذا اليوم</div>
+              ) : (
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>الوقت</th>
+                        <th>المنتجات</th>
+                        <th>الإجمالي</th>
+                        <th>طريقة الدفع</th>
+                        <th>الكاشير</th>
+                        <th>إجراء</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.sales.list.map((s: any) => (
+                        <tr key={s._id}>
+                          <td style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                            {new Date(s.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              {s.items.map((item: any, idx: number) => (
+                                <div key={idx} style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ background: 'rgba(96,165,250,0.15)', color: '#60a5fa', borderRadius: 6, padding: '2px 7px', fontWeight: 700 }}>×{item.quantity}</span>
+                                  <span>{item.name}</span>
+                                  <span style={{ color: 'var(--text-muted)' }}>({item.price} ج.م)</span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ color: '#22c55e', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{s.total.toLocaleString()} ج.م</td>
+                          <td>{s.paymentMethod === 'card' ? 'بطاقة' : s.paymentMethod === 'CARD' ? 'بطاقة' : 'كاش'}</td>
+                          <td style={{ fontSize: '12px' }}>{s.cashier?.name || '-'}</td>
+                          <td>
+                            <button
+                              onClick={() => handleDeleteSale(s._id)}
+                              disabled={deletingId === s._id}
+                              style={{
+                                background: 'rgba(239,68,68,0.1)',
+                                border: '1px solid rgba(239,68,68,0.3)',
+                                color: '#f87171',
+                                borderRadius: 8,
+                                padding: '5px 10px',
+                                cursor: deletingId === s._id ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                fontSize: 12,
+                                fontFamily: 'Cairo, sans-serif',
+                                fontWeight: 700,
+                                opacity: deletingId === s._id ? 0.5 : 1,
+                              }}
+                            >
+                              <TrashIcon style={{ width: 13, height: 13 }} />
+                              {deletingId === s._id ? '...' : 'حذف'}
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -669,6 +766,14 @@ const MonthlyReportPanel = () => {
               color={report.financial.netProfit >= 0 ? '#10b981' : '#ef4444'}
               bgGradient={report.financial.netProfit >= 0 ? 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))'}
               icon={report.financial.netProfit >= 0 ? <ArrowTrendingUpIcon /> : <ArrowTrendingDownIcon />} 
+            />
+            <StatCard 
+              label="مبيعات المتجر" 
+              value={report.sales?.count || 0} 
+              sub={`${(report.sales?.revenue || 0).toLocaleString()} ج.م`} 
+              color="#60a5fa" 
+              bgGradient="linear-gradient(135deg, rgba(96,165,250,0.25), rgba(96,165,250,0.08))"
+              icon={<ShoppingBagIcon />} 
             />
             <StatCard 
               label="حصص فردية (Day Pass)" 
