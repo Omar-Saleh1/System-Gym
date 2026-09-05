@@ -1,8 +1,17 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { 
+  ShoppingBagIcon, 
+  ShoppingCartIcon, 
+  SparklesIcon, 
+  TagIcon, 
+  TrashIcon, 
+  PencilSquareIcon,
+  PlusIcon
+} from '@heroicons/react/24/outline';
 
-const CATEGORIES = ['الكل', 'كرياتين', 'بروتين', 'بروتين بار', 'شيك بروتين', 'شيكر', 'سبلمينت', 'عام'];
+const CATEGORIES = ['الكل', 'ملابس رياضية', 'كرياتين', 'بروتين', 'بروتين بار', 'شيك بروتين', 'شيكر', 'سبلمينت', 'عام'];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -249,27 +258,34 @@ const Cashier = () => {
                 style={{ position: 'relative', padding: 0, overflow: 'hidden' }}
               >
                 {/* Product Image */}
-                <div style={{ height: 110, background: 'rgba(255,255,255,0.04)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ height: 110, background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,87,70,0.05))', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.image
                     ? <img src={`${API_BASE}${p.image}`} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontSize: 42 }}>🛒</span>
+                    : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, color: 'var(--primary)', opacity: 0.85 }}>
+                        <ShoppingBagIcon style={{ width: 38, height: 38 }} />
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{p.category}</span>
+                      </div>
+                    )
                   }
                 </div>
 
                 {/* Category Badge */}
                 <span style={{
                   position: 'absolute', top: 8, right: 8,
-                  background: 'rgba(255,87,70,0.85)', color: '#fff',
-                  fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                  backdropFilter: 'blur(4px)'
+                  background: 'linear-gradient(135deg, #ff5746, #e04b3c)', color: '#fff',
+                  fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
+                  backdropFilter: 'blur(4px)',
+                  boxShadow: '0 2px 8px rgba(255,87,70,0.3)'
                 }}>{p.category}</span>
 
                 {/* Out of stock badge */}
                 {p.stock <= 0 && (
                   <span style={{
                     position: 'absolute', top: 8, left: 8,
-                    background: 'rgba(0,0,0,0.7)', color: '#ff5746',
+                    background: 'rgba(0,0,0,0.8)', color: '#ff5746',
                     fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                    border: '1px solid rgba(255,87,70,0.4)'
                   }}>نفد</span>
                 )}
 
@@ -305,9 +321,19 @@ const Cashier = () => {
 
         {/* Cart / Invoice Panel */}
         <div className="form-card" style={{ position: 'sticky', top: 20 }}>
-          <h2 style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 16, borderBottom: '1px solid var(--border-color)', paddingBottom: 10 }}>
-            🧾 الفاتورة
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--border-color)', paddingBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg, rgba(255,87,70,0.25), rgba(255,87,70,0.08))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', boxShadow: '0 2px 8px rgba(255,87,70,0.2)' }}>
+                <ShoppingCartIcon style={{ width: 20, height: 20 }} />
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 'bold', margin: 0, color: '#fff' }}>الفاتورة / سلة المشتريات</h2>
+            </div>
+            {cart.length > 0 && (
+              <span className="badge badge-primary" style={{ fontSize: 11, background: 'var(--primary)', color: '#fff' }}>
+                {cart.reduce((s, i) => s + i.quantity, 0)} عنصر
+              </span>
+            )}
+          </div>
           {message && <div className="message">{message}</div>}
 
           {cart.map((i) => (

@@ -40,7 +40,7 @@ const Sidebar = () => {
     { href: '/expenses',      icon: <ReceiptRefundIcon style={{ color: 'var(--danger)' }} />, label: 'المصروفات', emoji: '💸' },
     { href: '/coaches',       icon: <AcademicCapIcon style={{ color: 'var(--primary)' }} />, label: 'الكباتن',   emoji: '🏅' },
     { href: '/plans',         icon: <ClipboardDocumentListIcon />, label: 'الخطط',       emoji: '📋' },
-    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'الكاشير',      emoji: '🛒' },
+    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'المتجر والكاشير', emoji: '🛍️' },
     { href: '/cashier-users', icon: <UserPlusIcon style={{ color: 'var(--primary)' }} />, label: 'حسابات الكاشير', emoji: '🔑' },
     { href: '/reports',       icon: <ChartBarSquareIcon />,      label: 'التقارير',     emoji: '📊' },
   ];
