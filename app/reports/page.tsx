@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 import {
   BanknotesIcon,
   ReceiptRefundIcon,
@@ -156,6 +157,7 @@ const DailyReportPanel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
 
   const loadDailyReport = async (d: string, sFilter?: string) => {
     try {
@@ -173,14 +175,16 @@ const DailyReportPanel = () => {
     }
   };
 
-  const handleDeleteSale = async (saleId: string) => {
-    if (!confirm('هل أنت متأكد من حذف عملية البيع هذه؟\nسيتم استرجاع الكميات للمخزون وخصم المبلغ من الإيراد.')) return;
+  const handleConfirmDeleteSale = async () => {
+    if (!saleToDelete) return;
+    const saleId = saleToDelete;
     setDeletingId(saleId);
+    setSaleToDelete(null);
     try {
       await api.delete(`/sales/${saleId}`);
       await loadDailyReport(date, shiftFilter);
     } catch (err: any) {
-      alert('خطأ في الحذف: ' + (err.response?.data?.message || err.message));
+      setError('خطأ في الحذف: ' + (err.response?.data?.message || err.message));
     } finally {
       setDeletingId(null);
     }
@@ -508,7 +512,7 @@ const DailyReportPanel = () => {
                           <td style={{ fontSize: '12px' }}>{s.cashier?.name || '-'}</td>
                           <td>
                             <button
-                              onClick={() => handleDeleteSale(s._id)}
+                              onClick={() => setSaleToDelete(s._id)}
                               disabled={deletingId === s._id}
                               style={{
                                 background: 'rgba(239,68,68,0.1)',
@@ -644,6 +648,26 @@ const DailyReportPanel = () => {
           )}
         </>
       )}
+
+      {/* Confirm Delete Sale Modal */}
+      <ConfirmModal
+        open={!!saleToDelete}
+        type="danger"
+        title="تأكيد حذف عملية البيع"
+        message={
+          <span>
+            هل أنت متأكد من حذف عملية البيع هذه؟
+            <br />
+            <span style={{ fontSize: '13px', opacity: 0.85, color: '#f87171', display: 'block', marginTop: '6px' }}>
+              سيتم استرجاع الكميات للمخزون وخصم المبلغ من الإيراد.
+            </span>
+          </span>
+        }
+        confirmText="نعم، احذف"
+        cancelText="إلغاء"
+        onConfirm={handleConfirmDeleteSale}
+        onCancel={() => setSaleToDelete(null)}
+      />
     </div>
   );
 };

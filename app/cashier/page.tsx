@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import ConfirmModal from '../../components/ConfirmModal';
 import { 
   ShoppingBagIcon, 
   ShoppingCartIcon, 
@@ -61,6 +62,7 @@ const Cashier = () => {
   const [productForm, setProductForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [productToDelete, setProductToDelete] = useState<any>(null);
 
   const loadProducts = async (cat = activeCategory, q = search) => {
     const params: Record<string, string> = {};
@@ -128,22 +130,29 @@ const Cashier = () => {
     setShowAddProduct(true);
   };
 
-  const openEditForm = (p: any) => {
-    setEditProduct(p);
-    setProductForm({ name: p.name, category: p.category, price: p.price, costPrice: p.costPrice, stock: p.stock });
+  const openEditForm = (product: any) => {
+    setEditProduct(product);
+    setProductForm({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      costPrice: product.costPrice || '',
+      stock: product.stock,
+    });
     setImageFile(null);
-    setImagePreview(p.image ? `${API_BASE}${p.image}` : '');
+    setImagePreview(product.image ? `${API_BASE}${product.image}` : '');
     setShowAddProduct(true);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
-  const handleSaveProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const fd = new FormData();
     Object.entries(productForm).forEach(([k, v]) => fd.append(k, v));
@@ -162,10 +171,15 @@ const Cashier = () => {
     loadProducts();
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
-    await api.delete(`/products/${id}`);
-    loadProducts();
+  const handleConfirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    try {
+      await api.delete(`/products/${productToDelete._id}`);
+      setProductToDelete(null);
+      loadProducts();
+    } catch (err: any) {
+      console.error('Error deleting product', err);
+    }
   };
 
   // Build dynamic categories ensuring all products are represented
@@ -497,7 +511,7 @@ const Cashier = () => {
                       تعديل
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleDeleteProduct(p._id); }}
+                      onClick={(e) => { e.stopPropagation(); setProductToDelete(p); }}
                       style={{
                         flex: 1,
                         padding: '8px 0',
@@ -617,6 +631,27 @@ const Cashier = () => {
           </button>
         </div>
       </div>
+
+      {/* Confirm Delete Product Modal */}
+      <ConfirmModal
+        open={!!productToDelete}
+        type="danger"
+        title="تأكيد حذف المنتج"
+        message={
+          <span>
+            هل أنت متأكد من حذف المنتج{' '}
+            <strong style={{ color: '#fff' }}>"{productToDelete?.name}"</strong> نهائياً من المتجر؟
+            <br />
+            <span style={{ fontSize: '13px', opacity: 0.85, color: '#f87171', display: 'block', marginTop: '6px' }}>
+              لن يمكنك التراجع عن هذه الخطوة.
+            </span>
+          </span>
+        }
+        confirmText="نعم، احذف"
+        cancelText="إلغاء"
+        onConfirm={handleConfirmDeleteProduct}
+        onCancel={() => setProductToDelete(null)}
+      />
     </div>
   );
 };
