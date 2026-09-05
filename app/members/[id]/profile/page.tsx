@@ -108,6 +108,19 @@ const MemberProfile = () => {
                 </span>
               </div>
               <div style={labelStyle}>من: {new Date(subscription.startDate).toLocaleDateString('ar-EG')} — إلى: {new Date(subscription.endDate).toLocaleDateString('ar-EG')}</div>
+              {subscription.subscriptionType === 'sessions' && (
+                <div style={{ marginTop: '10px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.25)', borderRadius: '8px', padding: '10px 14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#93c5fd', fontWeight: 'bold' }}>🏋️ رصيد الحصص:</span>
+                    <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#60a5fa' }}>
+                      {subscription.sessionsUsed || 0} / {subscription.sessionsLimit || 0} حصة
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '6px' }}>
+                        ({Math.max(0, (subscription.sessionsLimit || 0) - (subscription.sessionsUsed || 0))} متبقي)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
               {profile.subscriptionPayment && (
                 <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>

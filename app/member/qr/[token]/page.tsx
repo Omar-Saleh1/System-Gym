@@ -250,8 +250,26 @@ const PublicMemberQR = () => {
           {member.qrToken}
         </p>
 
-        {/* Subscription Expiry date */}
-        {member.endDate && (
+        {/* Session / Expiry info */}
+        {member.sessionInfo ? (
+          <div style={{
+            fontSize: '13px',
+            color: 'var(--text-muted)',
+            marginBottom: '20px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            padding: '12px',
+            borderRadius: '12px',
+            border: '1px solid rgba(59, 130, 246, 0.25)'
+          }}>
+            <div style={{ fontSize: '12px', color: '#93c5fd', marginBottom: '4px' }}>رصيد الحصص:</div>
+            <div style={{ fontSize: '18px', fontWeight: '900', color: '#60a5fa' }}>
+              {member.sessionInfo.sessionsRemaining} حصة متبقية
+            </div>
+            <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>
+              (تم استهلاك {member.sessionInfo.sessionsUsed} من {member.sessionInfo.sessionsLimit} حصة)
+            </div>
+          </div>
+        ) : member.endDate && (
           <div style={{
             fontSize: '13px',
             color: 'var(--text-muted)',
