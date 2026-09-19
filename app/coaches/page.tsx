@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
   UserCircleIcon,
@@ -11,9 +12,12 @@ import {
 
 const CoachesAndSalaries = () => {
   const [activeTab, setActiveTab] = useState<'coaches' | 'salaries'>('coaches');
-  const [coaches, setCoaches] = useState<any[]>([]);
-  const [salaries, setSalaries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: coachData, mutate: mutateCoaches } = useFastQuery('/coaches');
+  const { data: salaryData, mutate: mutateSalaries } = useFastQuery('/coaches/salaries');
+
+  const coaches: any[] = coachData?.data || [];
+  const salaries: any[] = salaryData?.data || [];
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
   // Confirm Modal state
@@ -60,24 +64,9 @@ const CoachesAndSalaries = () => {
   });
 
   const loadData = async () => {
-    try {
-      setLoading(true);
-      const [coachRes, salaryRes] = await Promise.all([
-        api.get('/coaches'),
-        api.get('/coaches/salaries')
-      ]);
-      setCoaches(coachRes.data.data || []);
-      setSalaries(salaryRes.data.data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    mutateCoaches();
+    mutateSalaries();
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const handleCoachSubmit = async (e: any) => {
     e.preventDefault();
@@ -195,8 +184,6 @@ const CoachesAndSalaries = () => {
 
   const statusBadge = (s: string) => s === 'PAID' ? 'badge-success' : s === 'PARTIAL' ? 'badge-warning' : 'badge-danger';
   const statusLabel = (s: string) => s === 'PAID' ? 'مدفوع بالكامل' : s === 'PARTIAL' ? 'مدفوع جزئياً' : 'غير مدفوع';
-
-  if (loading) return <div className="page">جاري التحميل...</div>;
 
   return (
     <div className="page">

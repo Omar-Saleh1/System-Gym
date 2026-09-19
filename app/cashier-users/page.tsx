@@ -1,13 +1,13 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import { UserPlusIcon, KeyIcon, UserGroupIcon, ShieldCheckIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 const CashierUsersPage = () => {
-  const [cashiers, setCashiers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: cashiersData, mutate: mutateCashiers } = useFastQuery('/auth/cashiers');
+  const cashiers: any[] = Array.isArray(cashiersData) ? cashiersData : [];
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -27,21 +27,8 @@ const CashierUsersPage = () => {
   const [newPasswordInput, setNewPasswordInput] = useState('');
 
   const loadCashiers = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/auth/cashiers');
-      setCashiers(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      console.error(err);
-      setErrorMessage(err.response?.data?.message || 'فشل في جلب قائمة الحسابات');
-    } finally {
-      setLoading(false);
-    }
+    mutateCashiers();
   };
-
-  useEffect(() => {
-    loadCashiers();
-  }, []);
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,8 +85,6 @@ const CashierUsersPage = () => {
       setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء تنفيذ العملية');
     }
   };
-
-  if (loading) return <div className="page">جاري التحميل...</div>;
 
   return (
     <div className="page">

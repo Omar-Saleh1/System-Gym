@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import { 
   ShoppingBagIcon, 
@@ -51,12 +52,19 @@ interface CartItem {
 }
 
 const Cashier = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState('الكل');
+  const [search, setSearch] = useState('');
+
+  const prodParams = new URLSearchParams();
+  if (activeCategory !== 'الكل') prodParams.set('category', activeCategory);
+  if (search) prodParams.set('search', search);
+  const prodUrl = `/products${prodParams.toString() ? `?${prodParams.toString()}` : ''}`;
+  const { data: prodsData, mutate: mutateProducts } = useFastQuery(prodUrl);
+  const products: any[] = Array.isArray(prodsData) ? prodsData : [];
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState('');
-  const [activeCategory, setActiveCategory] = useState('الكل');
-  const [search, setSearch] = useState('');
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editProduct, setEditProduct] = useState<any>(null);
   const [productForm, setProductForm] = useState(emptyForm);
@@ -64,24 +72,16 @@ const Cashier = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [productToDelete, setProductToDelete] = useState<any>(null);
 
-  const loadProducts = async (cat = activeCategory, q = search) => {
-    const params: Record<string, string> = {};
-    if (cat !== 'الكل') params.category = cat;
-    if (q) params.search = q;
-    const { data } = await api.get('/products', { params });
-    setProducts(data);
+  const loadProducts = async () => {
+    mutateProducts();
   };
-
-  useEffect(() => { loadProducts(); }, []); // eslint-disable-line
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
-    loadProducts(cat, search);
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    loadProducts(activeCategory, e.target.value);
   };
 
   const addToCart = (product: any) => {

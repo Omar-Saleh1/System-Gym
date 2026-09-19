@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import api from '../lib/axios';
+import React, { useState } from 'react';
+import { useFastQuery, mutate } from '../lib/swr';
 import SingleVisitModal from '../components/SingleVisitModal';
 import { 
   CurrencyDollarIcon, 
@@ -14,29 +14,22 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<any>(null);
-  const [attStats, setAttStats] = useState<any>(null);
-  const [payStats, setPayStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
 
+  const { data: statsData, mutate: mutateStats } = useFastQuery('/reports/dashboard');
+  const { data: attData, mutate: mutateAtt } = useFastQuery('/attendance/stats');
+  const { data: payData, mutate: mutatePay } = useFastQuery('/payments/dashboard');
+
+  const stats = statsData || {};
+  const attStats = attData?.stats || {};
+  const payStats = payData?.data || {};
+
   const loadAll = () => {
-    Promise.all([
-      api.get('/reports/dashboard').catch(() => ({ data: {} })),
-      api.get('/attendance/stats').catch(() => ({ data: { stats: {} } })),
-      api.get('/payments/dashboard').catch(() => ({ data: { data: {} } }))
-    ]).then(([res1, res2, res3]) => {
-      setStats(res1.data);
-      setAttStats(res2.data.stats);
-      setPayStats(res3.data.data);
-    }).finally(() => setLoading(false));
+    mutateStats();
+    mutateAtt();
+    mutatePay();
   };
 
-  useEffect(() => {
-    loadAll();
-  }, []);
-
-  if (loading) return <div className="page">جاري التحميل...</div>;
 
   const topCards = [
     { 

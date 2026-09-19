@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery, mutate } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,9 +10,14 @@ const Subscriptions = () => {
   const isAdmin = cashier?.role === 'admin' || cashier?.shiftType === 'BOYS';
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
+  const { data: subsData, mutate: mutateSubs } = useFastQuery('/subscriptions');
+  const { data: plansData, mutate: mutatePlans } = useFastQuery('/subscriptions/plans');
+  const { data: membersData, mutate: mutateMembers } = useFastQuery('/members');
+
+  const subscriptions: any[] = Array.isArray(subsData) ? subsData : [];
+  const plans: any[] = Array.isArray(plansData) ? plansData : [];
+  const members: any[] = Array.isArray(membersData) ? membersData : [];
+
   const [showForm, setShowForm] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [form, setForm] = useState({
@@ -41,17 +47,10 @@ const Subscriptions = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const loadAll = async () => {
-    const [subsRes, plansRes, membersRes] = await Promise.all([
-      api.get('/subscriptions'),
-      api.get('/subscriptions/plans'),
-      api.get('/members'),
-    ]);
-    setSubscriptions(subsRes.data);
-    setPlans(plansRes.data);
-    setMembers(membersRes.data);
+    mutateSubs();
+    mutatePlans();
+    mutateMembers();
   };
-
-  useEffect(() => { loadAll(); }, []);
 
   const handlePlanChange = (planId: string) => {
     const plan = plans.find(p => p._id === planId);

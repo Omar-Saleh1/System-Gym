@@ -1,7 +1,7 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import { 
   ClockIcon, 
   ExclamationTriangleIcon,
@@ -9,28 +9,11 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ExpiringSoon = () => {
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [days, setDays] = useState<number | string>(7);
-  const [loading, setLoading] = useState(true);
+  const { data: res, isLoading } = useFastQuery(`/subscriptions/expiring-soon?days=${days}`);
+  const subscriptions: any[] = res?.data || [];
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setErrorMessage('');
-        const res = await api.get(`/subscriptions/expiring-soon?days=${days}`);
-        setSubscriptions(res.data.data || []);
-      } catch (err: any) {
-        setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء تحميل البيانات');
-        setSubscriptions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [days]);
 
   const getRemainingDays = (endDate: string) => {
     const diffTime = new Date(endDate).getTime() - new Date().getTime();
@@ -106,7 +89,7 @@ const ExpiringSoon = () => {
         </div>
       )}
 
-      {loading ? (
+      {isLoading && subscriptions.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري التحميل...</div>
       ) : (
         <div className="table-container">

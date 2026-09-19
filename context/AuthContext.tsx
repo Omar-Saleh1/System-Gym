@@ -27,14 +27,36 @@ const isTokenExpired = (token: string): boolean => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [cashier, setCashier] = useState<Cashier | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [cashier, setCashier] = useState<Cashier | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const token = localStorage.getItem('token');
+    const saved = localStorage.getItem('cashier');
+    if (token && !isTokenExpired(token) && saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const token = localStorage.getItem('token');
+    if (!token || isTokenExpired(token)) return false;
+    const saved = localStorage.getItem('cashier');
+    return !saved;
+  });
+
   const router = useRouter();
 
   const clearAuthData = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
     setCashier(null);
   };
 
@@ -49,14 +71,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      if (savedCashier) {
+      if (savedCashier && !cashier) {
         try {
           setCashier(JSON.parse(savedCashier));
         } catch {
           // ignore
         }
       }
+      setLoading(false);
 
+      // Silent background verification
       try {
         const { data } = await api.get('/auth/me');
         const userObj: Cashier = {
@@ -70,9 +94,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setCashier(userObj);
         localStorage.setItem('cashier', JSON.stringify(userObj));
       } catch (err: any) {
-        clearAuthData();
-      } finally {
-        setLoading(false);
+        if (err.response?.status === 401) {
+          clearAuthData();
+        }
       }
     };
 

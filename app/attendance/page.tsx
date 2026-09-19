@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import CameraQRScanner from '../../components/CameraQRScanner';
 import ConfirmModal from '../../components/ConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
@@ -16,9 +17,15 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Attendance = () => {
-  const [records, setRecords] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [singleVisits, setSingleVisits] = useState<any[]>([]);
+  const today = new Date().toISOString().split('T')[0];
+  const { data: recData, mutate: mutateRec } = useFastQuery(`/attendance?date=${today}`);
+  const { data: memData, mutate: mutateMem } = useFastQuery('/members');
+  const { data: visitData, mutate: mutateVisit } = useFastQuery('/single-visits?date=today');
+
+  const records: any[] = Array.isArray(recData) ? recData : [];
+  const members: any[] = Array.isArray(memData) ? memData.filter((m: any) => m.active) : [];
+  const singleVisits: any[] = Array.isArray(visitData?.data) ? visitData.data : [];
+
   const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
   const [deleteVisitTarget, setDeleteVisitTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -41,27 +48,10 @@ const Attendance = () => {
   };
 
   const loadData = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const [recRes, memRes, visitRes] = await Promise.all([
-        api.get('/attendance', { params: { date: today } }),
-        api.get('/members'),
-        api.get('/single-visits', { params: { date: 'today' } }).catch(() => ({ data: { data: [] } })),
-      ]);
-      setRecords(recRes.data || []);
-      setMembers((memRes.data || []).filter((m: any) => m.active));
-      setSingleVisits(visitRes.data?.data || []);
-    } catch (err) {
-      console.error('Failed to load attendance data:', err);
-      setRecords([]);
-      setMembers([]);
-      setSingleVisits([]);
-    }
+    mutateRec();
+    mutateMem();
+    mutateVisit();
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   // Keep scan input always focused — scanner acts as keyboard
   useEffect(() => {

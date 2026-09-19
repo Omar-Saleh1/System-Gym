@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { LOGO_BASE64 } from '../lib/logoData';
+import { prefetchData } from '../lib/swr';
 import {
   Squares2X2Icon,
   UsersIcon,
@@ -31,19 +32,25 @@ const Sidebar = () => {
   };
 
   const navLinks = [
-    { href: '/',              icon: <Squares2X2Icon />,          label: 'الرئيسية',      emoji: '🏠' },
-    { href: '/members',       icon: <UsersIcon />,               label: 'الأعضاء',       emoji: '👥' },
-    { href: '/subscriptions', icon: <TicketIcon />,              label: 'الاشتراكات',    emoji: '🎫' },
-    { href: '/expiring-soon', icon: <ClockIcon style={{ color: 'var(--warning)' }} />, label: 'تنتهي قريباً', emoji: '⏰' },
-    { href: '/attendance',    icon: <QrCodeIcon />,              label: 'الحضور / QR',   emoji: '📱' },
-    { href: '/payments',      icon: <BanknotesIcon />,           label: 'المالية',       emoji: '💰' },
-    { href: '/expenses',      icon: <ReceiptRefundIcon style={{ color: 'var(--danger)' }} />, label: 'المصروفات', emoji: '💸' },
-    { href: '/coaches',       icon: <AcademicCapIcon style={{ color: 'var(--primary)' }} />, label: 'الكباتن',   emoji: '🏅' },
-    { href: '/plans',         icon: <ClipboardDocumentListIcon />, label: 'الخطط',       emoji: '📋' },
-    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'المتجر والكاشير', emoji: '🛍️' },
-    { href: '/cashier-users', icon: <UserPlusIcon style={{ color: 'var(--primary)' }} />, label: 'حسابات الكاشير', emoji: '🔑' },
-    { href: '/reports',       icon: <ChartBarSquareIcon />,      label: 'التقارير',     emoji: '📊' },
+    { href: '/',              icon: <Squares2X2Icon />,          label: 'الرئيسية',      emoji: '🏠', prefetchUrls: ['/reports/dashboard', '/attendance/stats', '/payments/dashboard'] },
+    { href: '/members',       icon: <UsersIcon />,               label: 'الأعضاء',       emoji: '👥', prefetchUrls: ['/members'] },
+    { href: '/subscriptions', icon: <TicketIcon />,              label: 'الاشتراكات',    emoji: '🎫', prefetchUrls: ['/subscriptions', '/subscriptions/plans', '/members'] },
+    { href: '/expiring-soon', icon: <ClockIcon style={{ color: 'var(--warning)' }} />, label: 'تنتهي قريباً', emoji: '⏰', prefetchUrls: ['/subscriptions/expiring-soon?days=7'] },
+    { href: '/attendance',    icon: <QrCodeIcon />,              label: 'الحضور / QR',   emoji: '📱', prefetchUrls: ['/attendance', '/members', '/single-visits?date=today'] },
+    { href: '/payments',      icon: <BanknotesIcon />,           label: 'المالية',       emoji: '💰', prefetchUrls: ['/payments', '/payments/stats'] },
+    { href: '/expenses',      icon: <ReceiptRefundIcon style={{ color: 'var(--danger)' }} />, label: 'المصروفات', emoji: '💸', prefetchUrls: ['/expenses'] },
+    { href: '/coaches',       icon: <AcademicCapIcon style={{ color: 'var(--primary)' }} />, label: 'الكباتن',   emoji: '🏅', prefetchUrls: ['/coaches', '/coaches/salaries'] },
+    { href: '/plans',         icon: <ClipboardDocumentListIcon />, label: 'الخطط',       emoji: '📋', prefetchUrls: ['/subscriptions/plans'] },
+    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'المتجر والكاشير', emoji: '🛍️', prefetchUrls: ['/products'] },
+    { href: '/cashier-users', icon: <UserPlusIcon style={{ color: 'var(--primary)' }} />, label: 'حسابات الكاشير', emoji: '🔑', prefetchUrls: ['/auth/cashiers'] },
+    { href: '/reports',       icon: <ChartBarSquareIcon />,      label: 'التقارير',     emoji: '📊', prefetchUrls: ['/reports/daily'] },
   ];
+
+  const handleLinkHover = (urls?: string[]) => {
+    if (urls && Array.isArray(urls)) {
+      urls.forEach(url => prefetchData(url));
+    }
+  };
 
   return (
     <div className="sidebar">
@@ -87,6 +94,8 @@ const Sidebar = () => {
           <Link
             key={link.href}
             href={link.href}
+            onMouseEnter={() => handleLinkHover(link.prefetchUrls)}
+            onTouchStart={() => handleLinkHover(link.prefetchUrls)}
             className={pathname === link.href ? 'nav-link active' : 'nav-link'}
           >
             {link.icon}

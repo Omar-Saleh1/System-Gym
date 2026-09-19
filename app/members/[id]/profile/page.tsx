@@ -1,15 +1,16 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../lib/axios';
+import { useFastQuery } from '../../../../lib/swr';
 import ConfirmModal from '../../../../components/ConfirmModal';
 
 const MemberProfile = () => {
   const params = useParams();
   const id = params?.id;
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+
+  const { data: profile, mutate: fetchProfile, isLoading } = useFastQuery(id ? `/members/${id}/profile` : null);
 
   // Pay remaining modal state
   const [payTarget, setPayTarget] = useState<any>(null);
@@ -17,19 +18,6 @@ const MemberProfile = () => {
   const [payMethod, setPayMethod] = useState('CASH');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
-
-  const fetchProfile = () => {
-    if (!id) return;
-    setLoading(true);
-    api.get(`/members/${id}/profile`)
-      .then(r => setProfile(r.data))
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, [id]);
 
   const handleOpenPayRemaining = (p: any) => {
     setPayTarget(p);
@@ -63,7 +51,7 @@ const MemberProfile = () => {
     }
   };
 
-  if (loading) return <div className="page">جاري التحميل...</div>;
+  if (isLoading && !profile) return <div className="page">جاري التحميل...</div>;
   if (!profile?.member) return <div className="page">العضو غير موجود</div>;
 
   const { member, subscription, attendance, payments, workoutPlan, dietPlan } = profile;

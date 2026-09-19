@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery, mutate, invalidateData } from '../../lib/swr';
 import MemberQRModal from '../../components/MemberQRModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
@@ -25,7 +26,6 @@ const emptyForm = { name: '', phone: '', email: '', gender: 'male', address: '',
 
 const Members = () => {
   const { cashier } = useAuth();
-  const [members, setMembers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -37,18 +37,12 @@ const Members = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const loadMembers = async (q = '') => {
-    const { data } = await api.get('/members', { params: { search: q } });
-    setMembers(data);
-  };
-
-  useEffect(() => {
-    loadMembers();
-  }, []);
+  const membersKey = search ? `/members?search=${encodeURIComponent(search)}` : '/members';
+  const { data: membersData, mutate: mutateMembers } = useFastQuery(membersKey);
+  const members: any[] = Array.isArray(membersData) ? membersData : [];
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    loadMembers(e.target.value);
   };
 
   const handleOpenAddModal = () => {
@@ -91,7 +85,7 @@ const Members = () => {
         await api.post('/members', form);
       }
       handleCloseModal();
-      loadMembers(search);
+      invalidateData(/^\/members/);
     } catch (err: any) {
       const msg = err.response?.data?.message || (editingId ? 'حدث خطأ أثناء تعديل العضو' : 'حدث خطأ أثناء إضافة العضو');
       setErrorMessage(msg);
@@ -120,7 +114,7 @@ const Members = () => {
     try {
       await api.delete(`/members/${deleteTarget.id}`);
       setDeleteTarget(null);
-      loadMembers(search);
+      invalidateData(/^\/members/);
     } catch (err: any) {
       alert(err.response?.data?.message || 'فشل حذف العضو');
     }

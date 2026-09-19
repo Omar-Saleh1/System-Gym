@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery, mutate } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
   BanknotesIcon,
@@ -16,8 +17,18 @@ import {
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'payments'>('dashboard');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // SWR Cached collections
+  const { data: memRes, mutate: mutateMembers } = useFastQuery('/members');
+  const { data: coachRes, mutate: mutateCoaches } = useFastQuery('/coaches');
+  const { data: payRes, mutate: mutatePayments } = useFastQuery('/payments');
+
+  const memList: any[] = Array.isArray(memRes) ? memRes : (memRes?.data || []);
+  const members: any[] = memList.filter((m: any) => m.active !== false);
+  const coaches: any[] = Array.isArray(coachRes) ? coachRes : (coachRes?.data || []);
+  const payments: any[] = Array.isArray(payRes) ? payRes : (payRes?.data || []);
 
   // Tab 1: Financial Dashboard State
   const [dateRange, setDateRange] = useState('today');
@@ -37,9 +48,6 @@ const Payments = () => {
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
 
   // Tab 2: Payments State
-  const [payments, setPayments] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [coaches, setCoaches] = useState<any[]>([]);
   const [memberSubs, setMemberSubs] = useState<any[]>([]);
   const [form, setForm] = useState({
     memberId: '',
@@ -51,44 +59,11 @@ const Payments = () => {
   });
 
   const loadData = async () => {
-    setLoading(true);
-    try {
-      // Fetch members safely
-      try {
-        const memRes = await api.get('/members');
-        const memList = Array.isArray(memRes.data) ? memRes.data : (memRes.data?.data || []);
-        setMembers(memList.filter((m: any) => m.active !== false));
-      } catch (e) {
-        console.error('Error fetching members:', e);
-        setMembers([]);
-      }
-
-      // Fetch coaches safely
-      try {
-        const coachRes = await api.get('/coaches');
-        setCoaches(Array.isArray(coachRes.data) ? coachRes.data : (coachRes.data?.data || []));
-      } catch (e) {
-        setCoaches([]);
-      }
-
-      // Fetch payments safely
-      try {
-        const payRes = await api.get('/payments');
-        setPayments(Array.isArray(payRes.data) ? payRes.data : (payRes.data?.data || []));
-      } catch (e) {
-        setPayments([]);
-      }
-
-      // Fetch dashboard stats
-      await fetchDashboardStats(dateRange, customFrom, customTo);
-      // Fetch filtered transactions
-      await fetchTransactions();
-
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    mutateMembers();
+    mutateCoaches();
+    mutatePayments();
+    fetchDashboardStats(dateRange, customFrom, customTo);
+    fetchTransactions();
   };
 
   const fetchDashboardStats = async (range: string, fromStr?: string, toStr?: string) => {
@@ -299,8 +274,6 @@ const Payments = () => {
 
   const statusBadge = (s: string) => s === 'PAID' ? 'badge-success' : s === 'PARTIAL' ? 'badge-warning' : 'badge-danger';
   const statusLabel = (s: string) => s === 'PAID' ? 'مدفوع' : s === 'PARTIAL' ? 'جزئي' : s === 'PENDING' ? 'معلق' : 'مرتجع';
-
-  if (loading) return <div className="page">جاري التحميل...</div>;
 
   return (
     <div className="page">

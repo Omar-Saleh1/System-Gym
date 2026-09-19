@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import { useAuth } from '../../context/AuthContext';
 import ConfirmModal from '../../components/ConfirmModal';
 import { 
@@ -16,11 +17,14 @@ import {
 
 const Expenses = () => {
   const { cashier } = useAuth();
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
+  const expKey = shiftFilter ? `/expenses?shiftType=${shiftFilter}` : '/expenses';
+  const { data: expRes, mutate: mutateExpenses } = useFastQuery(expKey);
+  const expenses: any[] = expRes?.data || [];
+
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
   const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
@@ -52,23 +56,8 @@ const Expenses = () => {
   };
 
   const loadExpenses = async (sFilter?: string) => {
-    try {
-      setLoading(true);
-      const targetShift = sFilter !== undefined ? sFilter : shiftFilter;
-      const params: any = {};
-      if (targetShift) params.shiftType = targetShift;
-      const res = await api.get('/expenses', { params });
-      setExpenses(res.data.data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    mutateExpenses();
   };
-
-  useEffect(() => {
-    loadExpenses(shiftFilter);
-  }, [shiftFilter]); // eslint-disable-line
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +74,7 @@ const Expenses = () => {
       });
       setMessage('✅ تم تسجيل المصروف وخصمه من الحسابات بنجاح');
       setForm({ title: '', amount: '', category: 'SALARIES', paymentMethod: 'CASH', notes: '' });
-      loadExpenses(shiftFilter);
+      loadExpenses();
       setTimeout(() => setMessage(''), 4000);
     } catch (err: any) {
       setMessage('❌ ' + (err.response?.data?.message || 'حدث خطأ أثناء التسجيل'));

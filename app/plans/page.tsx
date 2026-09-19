@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../lib/axios';
+import { useFastQuery } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 
 const Plans = () => {
   const [tab, setTab] = useState('workout');
-  const [members, setMembers] = useState<any[]>([]);
+  const { data: memData } = useFastQuery('/members');
+  const members = Array.isArray(memData) ? memData.filter((m: any) => m.active) : [];
   const [message, setMessage] = useState('');
 
   // Modal State
@@ -37,8 +39,6 @@ const Plans = () => {
   const [dForm, setDForm] = useState({ memberId: '', planName: '', goal: '', calories: '', protein: '', carbs: '', fats: '', notes: '', meals: [{ name: '', foods: [{ name: '', quantity: '', unit: '' }] }] });
   const [dViewMember, setDViewMember] = useState('');
   const [dPlans, setDPlans] = useState<any[]>([]);
-
-  useEffect(() => { api.get('/members').then(r => setMembers(r.data.filter((m: any) => m.active))); }, []);
 
   const showMsg = (m: string) => { setMessage(m); setTimeout(() => setMessage(''), 3000); };
   const statusBadge = (s: string) => s === 'ACTIVE' ? 'badge-success' : s === 'COMPLETED' ? 'badge-warning' : 'badge-danger';
