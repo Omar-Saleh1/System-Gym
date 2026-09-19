@@ -333,7 +333,7 @@ const Cashier = () => {
           <div style={{ marginBottom: 20 }}>
             <div style={{ position: 'relative', marginBottom: 14 }}>
               <input
-                placeholder="🔍 ابحث عن منتج بالاسم..."
+                placeholder="ابحث عن منتج بالاسم..."
                 value={search}
                 onChange={handleSearch}
                 style={{ width: '100%', padding: '12px 18px', borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: '#fff', fontSize: 14 }}

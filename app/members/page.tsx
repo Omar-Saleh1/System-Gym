@@ -127,33 +127,39 @@ const Members = () => {
           <button
             onClick={() => setShowSingleVisitModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 'bold',
-              padding: '10px 18px',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08))',
+              color: '#fbbf24',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              fontWeight: 600,
+              padding: '9px 18px',
               borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+              fontSize: '13px',
+              transition: 'all 0.2s ease',
             }}
           >
-            <SparklesIcon style={{ width: '18px', height: '18px' }} />
-            ⚡ + حصة فردية (Single Visit)
+            <SparklesIcon style={{ width: '17px', height: '17px' }} />
+            حصة فردية (Single Visit)
           </button>
           <button 
             onClick={handleOpenAddModal}
+            className="btn-primary"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              fontWeight: 'bold'
+              fontWeight: 600,
+              fontSize: '13px',
+              padding: '9px 18px',
+              borderRadius: '10px',
             }}
           >
-            <UserPlusIcon style={{ width: '18px', height: '18px' }} />
-            + عضو جديد
+            <UserPlusIcon style={{ width: '17px', height: '17px' }} />
+            عضو جديد
           </button>
         </div>
         <h1>الأعضاء</h1>

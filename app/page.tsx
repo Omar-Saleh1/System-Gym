@@ -88,22 +88,23 @@ const Dashboard = () => {
         <button
           onClick={() => setShowSingleVisitModal(true)}
           style={{
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            color: '#fff',
-            border: 'none',
-            fontWeight: 'bold',
-            padding: '11px 20px',
-            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08))',
+            color: '#fbbf24',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            fontWeight: 600,
+            padding: '10px 20px',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
             fontSize: '14px',
+            transition: 'all 0.2s ease',
           }}
         >
-          <SparklesIcon style={{ width: '20px', height: '20px' }} />
-          ⚡ ➕ حصة فردية (Single Visit)
+          <SparklesIcon style={{ width: '18px', height: '18px' }} />
+          حصة فردية (Single Visit)
         </button>
         <h1 style={{ textAlign: 'right', margin: 0 }}>لوحة التحكم</h1>
       </div>

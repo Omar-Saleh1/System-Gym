@@ -32,18 +32,18 @@ const Sidebar = () => {
   };
 
   const navLinks = [
-    { href: '/',              icon: <Squares2X2Icon />,          label: 'الرئيسية',      emoji: '🏠', prefetchUrls: ['/reports/dashboard', '/attendance/stats', '/payments/dashboard'] },
-    { href: '/members',       icon: <UsersIcon />,               label: 'الأعضاء',       emoji: '👥', prefetchUrls: ['/members'] },
-    { href: '/subscriptions', icon: <TicketIcon />,              label: 'الاشتراكات',    emoji: '🎫', prefetchUrls: ['/subscriptions', '/subscriptions/plans', '/members'] },
-    { href: '/expiring-soon', icon: <ClockIcon style={{ color: 'var(--warning)' }} />, label: 'تنتهي قريباً', emoji: '⏰', prefetchUrls: ['/subscriptions/expiring-soon?days=7'] },
-    { href: '/attendance',    icon: <QrCodeIcon />,              label: 'الحضور / QR',   emoji: '📱', prefetchUrls: ['/attendance', '/members', '/single-visits?date=today'] },
-    { href: '/payments',      icon: <BanknotesIcon />,           label: 'المالية',       emoji: '💰', prefetchUrls: ['/payments', '/payments/stats'] },
-    { href: '/expenses',      icon: <ReceiptRefundIcon style={{ color: 'var(--danger)' }} />, label: 'المصروفات', emoji: '💸', prefetchUrls: ['/expenses'] },
-    { href: '/coaches',       icon: <AcademicCapIcon style={{ color: 'var(--primary)' }} />, label: 'الكباتن',   emoji: '🏅', prefetchUrls: ['/coaches', '/coaches/salaries'] },
-    { href: '/plans',         icon: <ClipboardDocumentListIcon />, label: 'الخطط',       emoji: '📋', prefetchUrls: ['/subscriptions/plans'] },
-    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'المتجر والكاشير', emoji: '🛍️', prefetchUrls: ['/products'] },
-    { href: '/cashier-users', icon: <UserPlusIcon style={{ color: 'var(--primary)' }} />, label: 'حسابات الكاشير', emoji: '🔑', prefetchUrls: ['/auth/cashiers'] },
-    { href: '/reports',       icon: <ChartBarSquareIcon />,      label: 'التقارير',     emoji: '📊', prefetchUrls: ['/reports/daily'] },
+    { href: '/',              icon: <Squares2X2Icon />,          label: 'الرئيسية',      prefetchUrls: ['/reports/dashboard', '/attendance/stats', '/payments/dashboard'] },
+    { href: '/members',       icon: <UsersIcon />,               label: 'الأعضاء',       prefetchUrls: ['/members'] },
+    { href: '/subscriptions', icon: <TicketIcon />,              label: 'الاشتراكات',    prefetchUrls: ['/subscriptions', '/subscriptions/plans', '/members'] },
+    { href: '/expiring-soon', icon: <ClockIcon style={{ color: 'var(--warning)' }} />, label: 'تنتهي قريباً', prefetchUrls: ['/subscriptions/expiring-soon?days=7'] },
+    { href: '/attendance',    icon: <QrCodeIcon />,              label: 'الحضور / QR',   prefetchUrls: ['/attendance', '/members', '/single-visits?date=today'] },
+    { href: '/payments',      icon: <BanknotesIcon />,           label: 'المالية',       prefetchUrls: ['/payments', '/payments/stats'] },
+    { href: '/expenses',      icon: <ReceiptRefundIcon style={{ color: 'var(--danger)' }} />, label: 'المصروفات', prefetchUrls: ['/expenses'] },
+    { href: '/coaches',       icon: <AcademicCapIcon style={{ color: 'var(--primary)' }} />, label: 'الكباتن',   prefetchUrls: ['/coaches', '/coaches/salaries'] },
+    { href: '/plans',         icon: <ClipboardDocumentListIcon />, label: 'الخطط',       prefetchUrls: ['/subscriptions/plans'] },
+    { href: '/cashier',       icon: <ShoppingCartIcon />,        label: 'المتجر والكاشير', prefetchUrls: ['/products'] },
+    { href: '/cashier-users', icon: <UserPlusIcon style={{ color: 'var(--primary)' }} />, label: 'حسابات الكاشير', prefetchUrls: ['/auth/cashiers'] },
+    { href: '/reports',       icon: <ChartBarSquareIcon />,      label: 'التقارير',     prefetchUrls: ['/reports/daily'] },
   ];
 
   const handleLinkHover = (urls?: string[]) => {
@@ -75,11 +75,11 @@ const Sidebar = () => {
             <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>{cashier.name}</div>
             <div style={{ marginTop: '4px' }}>
               {cashier.role === 'admin' ? (
-                <span className="badge badge-warning" style={{ fontSize: '10px' }}>👑 أدمن (كل الشفتات)</span>
+                <span className="badge badge-warning" style={{ fontSize: '10px' }}>أدمن (كل الشفتات)</span>
               ) : cashier.shiftType === 'GIRLS' ? (
-                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 شفت البنات</span>
+                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>شفت البنات</span>
               ) : cashier.shiftType === 'BOYS' ? (
-                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شفت الشباب</span>
+                <span className="badge badge-secondary" style={{ fontSize: '10px', color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>شفت الشباب</span>
               ) : (
                 <span className="badge badge-secondary" style={{ fontSize: '10px' }}>كاشير</span>
               )}
@@ -106,8 +106,9 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <button className="btn-add-member" onClick={() => router.push('/members')} style={{ marginBottom: '10px' }}>
-          ＋ إضافة عضو جديد
+        <button className="btn-add-member" onClick={() => router.push('/members')} style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <UserPlusIcon style={{ width: '16px', height: '16px' }} />
+          إضافة عضو جديد
         </button>
         <button className="btn-logout" onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '10px' }}>
           <ArrowRightOnRectangleIcon style={{ width: '16px', height: '16px' }} />

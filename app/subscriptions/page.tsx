@@ -4,6 +4,13 @@ import api from '../../lib/axios';
 import { useFastQuery, mutate } from '../../lib/swr';
 import ConfirmModal from '../../components/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  FireIcon,
+  PauseCircleIcon,
+  PlayCircleIcon,
+} from '@heroicons/react/24/outline';
 
 const Subscriptions = () => {
   const { cashier } = useAuth();
@@ -192,7 +199,7 @@ const Subscriptions = () => {
     <div className="page">
       <div className="page-header">
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => { setShowPlanForm(!showPlanForm); setErrorMessage(''); }} className="btn-secondary">{showPlanForm ? 'إغلاق إدارة الخطط' : '📋 إدارة الخطط'}</button>
+          <button onClick={() => { setShowPlanForm(!showPlanForm); setErrorMessage(''); }} className="btn-secondary">{showPlanForm ? 'إغلاق إدارة الخطط' : 'إدارة الخطط'}</button>
           <button onClick={() => { setShowForm(!showForm); setErrorMessage(''); }}>{showForm ? 'إلغاء' : '+ اشتراك جديد'}</button>
         </div>
         <div>
@@ -218,9 +225,9 @@ const Subscriptions = () => {
               <div>
                 <label>المخصص لـ (الشفت)</label>
                 <select value={planForm.shiftType} onChange={(e) => setPlanForm({ ...planForm, shiftType: e.target.value })}>
-                  <option value="BOTH">🌐 كل الشفتات (بنات وشباب)</option>
-                  <option value="GIRLS">🌸 شفت البنات فقط</option>
-                  <option value="BOYS">🏋️‍♂️ شفت الشباب فقط</option>
+                  <option value="BOTH">كل الشفتات (بنات وشباب)</option>
+                  <option value="GIRLS">شفت البنات فقط</option>
+                  <option value="BOYS">شفت الشباب فقط</option>
                 </select>
               </div>
               {planForm.subscriptionType === 'days'
@@ -239,7 +246,7 @@ const Subscriptions = () => {
 
           {/* List of existing plans with Delete button */}
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
-            <h4 style={{ marginBottom: '14px', color: '#fff' }}>📋 الخطط الحالية المتاحة ({plans.length})</h4>
+            <h4 style={{ marginBottom: '14px', color: '#fff' }}>الخطط الحالية المتاحة ({plans.length})</h4>
             {plans.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '12px' }}>لا توجد خطط حتى الآن</div>
             ) : (
@@ -261,19 +268,19 @@ const Subscriptions = () => {
                         <td style={{ fontWeight: 'bold' }}>{p.name}</td>
                         <td>
                           {p.shiftType === 'GIRLS' ? (
-                            <span className="badge badge-secondary" style={{ color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>🌸 شفت البنات</span>
+                            <span className="badge badge-secondary" style={{ color: '#ec4899', borderColor: '#fbcfe8', background: 'rgba(236,72,153,0.1)' }}>شفت البنات</span>
                           ) : p.shiftType === 'BOYS' ? (
-                            <span className="badge badge-secondary" style={{ color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>🏋️‍♂️ شفت الشباب</span>
+                            <span className="badge badge-secondary" style={{ color: '#3b82f6', borderColor: '#bfdbfe', background: 'rgba(59,130,246,0.1)' }}>شفت الشباب</span>
                           ) : (
-                            <span className="badge badge-secondary">🌐 كل الشفتات</span>
+                            <span className="badge badge-secondary">كل الشفتات</span>
                           )}
                         </td>
-                        <td>{p.subscriptionType === 'sessions' ? '🏋️ حصص' : '📅 أيام'}</td>
+                        <td>{p.subscriptionType === 'sessions' ? 'حصص' : 'أيام'}</td>
                         <td>{p.subscriptionType === 'sessions' ? `${p.sessionsLimit || 0} حصة` : `${p.durationInDays || 0} يوم`}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{p.price} ج.م</td>
                         <td style={{ textAlign: 'center' }}>
                           <button className="btn-small btn-danger" onClick={() => handleDeletePlan(p._id, p.name)}>
-                            🗑️ حذف الخطة
+                            حذف الخطة
                           </button>
                         </td>
                       </tr>
@@ -325,10 +332,10 @@ const Subscriptions = () => {
             <div style={{ flex: 2 }}><label>ملاحظات</label><input type="text" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="اكتب أي ملاحظات هنا..." /></div>
             {isAdmin && (
               <div>
-                <label>📅 تاريخ الاشتراك</label>
+                <label>تاريخ الاشتراك</label>
                 <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} max={todayStr} />
                 {form.startDate !== todayStr && (
-                  <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px' }}>⚠️ تاريخ قديم — سيُسجَّل بتاريخ {form.startDate}</div>
+                  <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px' }}>تاريخ قديم — سيُسجَّل بتاريخ {form.startDate}</div>
                 )}
               </div>
             )}
@@ -376,10 +383,105 @@ const Subscriptions = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button className="btn-small" onClick={() => openEditModal(s)} style={{ background: '#8b5cf6', color: '#fff' }}>✏️ تعديل</button>
-                      {s.status === 'active' && !expired && <button className="btn-small" onClick={() => handleFreeze(s._id)} style={{ background: '#3b82f6', color: '#fff' }}>❄️ تجميد</button>}
-                      {s.status === 'frozen' && <button className="btn-small" onClick={() => handleUnfreeze(s._id)} style={{ background: '#22c55e', color: '#fff' }}>🔥 تشغيل</button>}
-                      <button className="btn-small btn-danger" onClick={() => handleDeleteSubscription(s._id, s.member?.name)}>🗑️ حذف</button>
+                      {/* Edit */}
+                      <button
+                        onClick={() => openEditModal(s)}
+                        title="تعديل"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(139,92,246,0.18), rgba(139,92,246,0.08))',
+                          color: '#a78bfa',
+                          border: '1px solid rgba(139,92,246,0.35)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <PencilSquareIcon style={{ width: '14px', height: '14px' }} />
+                        تعديل
+                      </button>
+
+                      {/* Freeze */}
+                      {s.status === 'active' && !expired && (
+                        <button
+                          onClick={() => handleFreeze(s._id)}
+                          title="تجميد"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08))',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(59,130,246,0.35)',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <PauseCircleIcon style={{ width: '14px', height: '14px' }} />
+                          تجميد
+                        </button>
+                      )}
+
+                      {/* Unfreeze */}
+                      {s.status === 'frozen' && (
+                        <button
+                          onClick={() => handleUnfreeze(s._id)}
+                          title="تشغيل"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08))',
+                            color: '#4ade80',
+                            border: '1px solid rgba(34,197,94,0.35)',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <PlayCircleIcon style={{ width: '14px', height: '14px' }} />
+                          تشغيل
+                        </button>
+                      )}
+
+                      {/* Delete */}
+                      <button
+                        onClick={() => handleDeleteSubscription(s._id, s.member?.name)}
+                        title="حذف"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.08))',
+                          color: '#f87171',
+                          border: '1px solid rgba(239,68,68,0.35)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <TrashIcon style={{ width: '14px', height: '14px' }} />
+                        حذف
+                      </button>
                     </div>
                   </td>
                 </tr>

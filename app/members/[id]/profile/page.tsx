@@ -176,7 +176,7 @@ const MemberProfile = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {/* Payments */}
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: '16px', color: 'var(--primary)' }}>💰 المدفوعات</h3>
+          <h3 style={{ marginBottom: '16px', color: 'var(--primary)' }}>المدفوعات</h3>
           <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
             <div><div style={labelStyle}>إجمالي المدفوع</div><div style={{ ...valueStyle, color: 'var(--success)' }}>{payments?.totalPaid?.toLocaleString() || 0} ج.م</div></div>
             <div><div style={labelStyle}>المتبقي</div><div style={{ ...valueStyle, color: payments?.totalRemaining > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>{payments?.totalRemaining?.toLocaleString() || 0} ج.م</div></div>
@@ -194,7 +194,21 @@ const MemberProfile = () => {
                       <td><span className={'badge ' + (p.status === 'PAID' ? 'badge-success' : p.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')}>{p.status === 'PAID' ? 'مكتمل' : 'جزئي'}</span></td>
                       <td>
                         {p.remainingAmount > 0 || p.status === 'PARTIAL' || p.status === 'PENDING' ? (
-                          <button className="btn-small" onClick={() => handleOpenPayRemaining(p)}>💵 سداد</button>
+                          <button
+                            className="btn-small"
+                            onClick={() => handleOpenPayRemaining(p)}
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08))',
+                              color: '#4ade80',
+                              border: '1px solid rgba(34,197,94,0.35)',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            سداد
+                          </button>
                         ) : <span style={{ color: 'var(--success)', fontSize: '12px' }}>✓</span>}
                       </td>
                     </tr>
@@ -209,7 +223,7 @@ const MemberProfile = () => {
         {/* Workout & Diet */}
         <div>
           <div style={{ ...cardStyle, marginBottom: '16px' }}>
-            <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>💪 جدول التمرين</h3>
+            <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>جدول التمرين</h3>
             {workoutPlan ? (
               <div>
                 <div style={valueStyle}>{workoutPlan.planName}</div>
@@ -219,7 +233,7 @@ const MemberProfile = () => {
             ) : <div style={{ color: 'var(--text-muted)' }}>لا يوجد جدول تمرين نشط</div>}
           </div>
           <div style={cardStyle}>
-            <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>🥗 النظام الغذائي</h3>
+            <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>النظام الغذائي</h3>
             {dietPlan ? (
               <div>
                 <div style={valueStyle}>{dietPlan.planName}</div>

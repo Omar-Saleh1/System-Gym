@@ -168,7 +168,7 @@ export default function SingleVisitModal({
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>
-                {successData ? 'إيصال الحصة الفردية 🧾' : 'تسجيل حصة فردية / Day Pass'}
+                {successData ? 'إيصال الحصة الفردية' : 'تسجيل حصة فردية / Day Pass'}
               </h3>
               <div style={{ fontSize: '12px', color: 'var(--text-muted, #9ca3af)', marginTop: '2px' }}>
                 {successData ? 'تم تسجيل الدخول والدفع بنجاح' : 'دخول سريع بدون اشتراك أو QR كود'}

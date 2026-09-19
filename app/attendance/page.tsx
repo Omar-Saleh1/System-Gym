@@ -181,22 +181,23 @@ const Attendance = () => {
           <button
             onClick={() => setShowSingleVisitModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 'bold',
-              padding: '11px 20px',
-              borderRadius: '12px',
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.08))',
+              color: '#fbbf24',
+              border: '1px solid rgba(245,158,11,0.35)',
+              fontWeight: 600,
+              padding: '9px 18px',
+              borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
-              fontSize: '14px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              fontSize: '13px',
+              transition: 'all 0.2s ease',
             }}
           >
-            <SparklesIcon style={{ width: '20px', height: '20px' }} />
-            ➕ حصة فردية (Single Visit)
+            <SparklesIcon style={{ width: '18px', height: '18px' }} />
+            حصة فردية (Single Visit)
           </button>
         </div>
         <div>
@@ -367,10 +368,10 @@ const Attendance = () => {
         {/* Attendance Table */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 'bold' }}>📋 سجل حضور الأعضاء المشتركين اليوم ({filteredRecords.length})</span>
+            <span style={{ fontSize: '15px', fontWeight: 'bold' }}>سجل حضور الأعضاء المشتركين اليوم ({filteredRecords.length})</span>
             <input 
               type="text" 
-              placeholder="🔍 ابحث في حضور الأعضاء..." 
+              placeholder="ابحث في حضور الأعضاء..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ width: '220px', marginBottom: 0, padding: '8px 12px' }}
@@ -523,7 +524,7 @@ const Attendance = () => {
           <div style={{ display: 'flex', gap: '10px' }}>
             <input 
               type="text" 
-              placeholder="🔍 ابحث بالاسم أو التليفون..." 
+              placeholder="ابحث بالاسم أو التليفون..." 
               value={visitSearchQuery}
               onChange={(e) => setVisitSearchQuery(e.target.value)}
               style={{ width: '220px', marginBottom: 0, padding: '8px 12px' }}
@@ -531,17 +532,23 @@ const Attendance = () => {
             <button
               onClick={() => setShowSingleVisitModal(true)}
               style={{
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                color: '#fff',
-                border: 'none',
-                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.08))',
+                color: '#fbbf24',
+                border: '1px solid rgba(245,158,11,0.35)',
+                fontWeight: 600,
                 padding: '8px 16px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '13px'
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s ease',
               }}
             >
-              + إضافة حصة فردية
+              <SparklesIcon style={{ width: '15px', height: '15px' }} />
+              حصة فردية جديدة
             </button>
           </div>
         </div>

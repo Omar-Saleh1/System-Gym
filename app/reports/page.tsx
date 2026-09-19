@@ -16,7 +16,10 @@ import {
   CheckBadgeIcon,
   ClockIcon,
   ShoppingBagIcon,
-  TrashIcon
+  TrashIcon,
+  CalendarDaysIcon,
+  ChartBarSquareIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -222,13 +225,49 @@ const DailyReportPanel = () => {
           )}
 
           <div>
-            <button onClick={() => loadDailyReport(date)} disabled={loading}>
-              {loading ? 'جاري التحميل...' : '🔍 عرض التقرير'}
+            <button
+              onClick={() => loadDailyReport(date)}
+              disabled={loading}
+              style={{
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.1))',
+                color: '#818cf8',
+                border: '1px solid rgba(99,102,241,0.35)',
+                fontWeight: 600,
+                padding: '9px 18px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                fontSize: '13px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <MagnifyingGlassIcon style={{ width: '16px', height: '16px' }} />
+              {loading ? 'جاري التحميل...' : 'عرض التقرير'}
             </button>
           </div>
           <div>
-            <button onClick={() => { setDate(todayStr); loadDailyReport(todayStr); }} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
-              📅 اليوم
+            <button
+              onClick={() => { setDate(todayStr); loadDailyReport(todayStr); }}
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-muted)',
+                borderRadius: '10px',
+                padding: '9px 18px',
+                fontWeight: 600,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <CalendarDaysIcon style={{ width: '16px', height: '16px' }} />
+              اليوم
             </button>
           </div>
         </div>
@@ -334,7 +373,7 @@ const DailyReportPanel = () => {
 
           {/* Income & Expense Breakdown */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-            <SectionCard title="💰 مصادر الإيرادات">
+            <SectionCard title="مصادر الإيرادات">
               {Object.keys(report.incomeByCategory).length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد إيرادات</div>
               ) : (
@@ -354,7 +393,7 @@ const DailyReportPanel = () => {
               )}
             </SectionCard>
 
-            <SectionCard title="💸 المصروفات">
+            <SectionCard title="المصروفات">
               {Object.keys(report.expenseByCategory).length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد مصروفات</div>
               ) : (
@@ -376,7 +415,7 @@ const DailyReportPanel = () => {
           </div>
 
           {/* ── Settled Payments (سداد المعلق) ── */}
-          <SectionCard title="✅ المبالغ المُسددة في هذا اليوم">
+          <SectionCard title="المبالغ المُسددة في هذا اليوم">
             {report.settledPayments.list.length === 0 ? (
               <div style={{ color: 'var(--text-muted)' }}>لا توجد مدفوعات مسجلة في هذا اليوم</div>
             ) : (
@@ -421,7 +460,7 @@ const DailyReportPanel = () => {
 
           {/* ── Single Visits (حصص فردية) ── */}
           {report.singleVisits && (
-            <SectionCard title={`⚡ الحصص الفردية في هذا اليوم (${report.singleVisits.count}) — إجمالي: ${report.singleVisits.revenue.toLocaleString()} ج.م`}>
+            <SectionCard title={`الحصص الفردية في هذا اليوم (${report.singleVisits.count}) — إجمالي: ${report.singleVisits.revenue.toLocaleString()} ج.م`}>
               {report.singleVisits.list.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد حصص فردية مسجلة في هذا اليوم</div>
               ) : (
@@ -474,7 +513,7 @@ const DailyReportPanel = () => {
 
           {/* ── Store Sales (مبيعات المتجر) ── */}
           {report.sales && (
-            <SectionCard title={`🛍️ مبيعات المتجر في هذا اليوم (${report.sales.count}) — إجمالي: ${report.sales.revenue.toLocaleString()} ج.م`}>
+            <SectionCard title={`مبيعات المتجر في هذا اليوم (${report.sales.count}) — إجمالي: ${report.sales.revenue.toLocaleString()} ج.م`}>
               {report.sales.list.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد مبيعات مسجلة في هذا اليوم</div>
               ) : (
@@ -544,7 +583,7 @@ const DailyReportPanel = () => {
           )}
 
           {/* All Transactions */}
-          <SectionCard title={`📋 جميع المعاملات (${report.transactions.length})`}>
+          <SectionCard title={`جميع المعاملات (${report.transactions.length})`}>
             {report.transactions.length === 0 ? (
               <div style={{ color: 'var(--text-muted)' }}>لا توجد معاملات</div>
             ) : (
@@ -568,7 +607,7 @@ const DailyReportPanel = () => {
                           {new Date(tx.date).toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td style={{ fontWeight: 'bold', color: tx.type === 'income' ? 'var(--success)' : 'var(--danger)' }}>
-                          {tx.type === 'income' ? '📥 إيراد' : '📤 مصروف'}
+                          {tx.type === 'income' ? 'إيراد' : 'مصروف'}
                         </td>
                         <td>{CATEGORY_LABELS[tx.category] || tx.category}</td>
                         <td>{(tx.memberId as any)?.name || tx.customerName || (tx.coachId as any)?.name || tx.description || '-'}</td>
@@ -587,7 +626,7 @@ const DailyReportPanel = () => {
 
           {/* Attendance */}
           {report.attendance.list.length > 0 && (
-            <SectionCard title={`🏃 الحضور (${report.attendance.totalVisits} زيارة — ${report.attendance.uniqueVisitors} عضو مختلف)`}>
+            <SectionCard title={`الحضور (${report.attendance.totalVisits} زيارة — ${report.attendance.uniqueVisitors} عضو مختلف)`}>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
@@ -612,7 +651,7 @@ const DailyReportPanel = () => {
 
           {/* Subscriptions */}
           {report.subscriptions.list.length > 0 && (
-            <SectionCard title={`📋 الاشتراكات الجديدة (${report.subscriptions.count})`}>
+            <SectionCard title={`الاشتراكات الجديدة (${report.subscriptions.count})`}>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
@@ -636,7 +675,7 @@ const DailyReportPanel = () => {
 
           {/* New Members */}
           {report.newMembers.count > 0 && (
-            <SectionCard title={`🆕 أعضاء جدد (${report.newMembers.count})`}>
+            <SectionCard title={`أعضاء جدد (${report.newMembers.count})`}>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {report.newMembers.list.map((m: any) => (
                   <div key={m._id} style={{ padding: '8px 14px', background: 'var(--bg-input)', borderRadius: '8px', fontSize: '13px' }}>
@@ -739,8 +778,27 @@ const MonthlyReportPanel = () => {
           )}
 
           <div>
-            <button onClick={() => runReport()} disabled={loading}>
-              {loading ? 'جاري التحميل...' : '🔍 عرض التقرير'}
+            <button
+              onClick={() => runReport()}
+              disabled={loading}
+              style={{
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.1))',
+                color: '#818cf8',
+                border: '1px solid rgba(99,102,241,0.35)',
+                fontWeight: 600,
+                padding: '9px 18px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                fontSize: '13px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <MagnifyingGlassIcon style={{ width: '16px', height: '16px' }} />
+              {loading ? 'جاري التحميل...' : 'عرض التقرير'}
             </button>
           </div>
         </div>
@@ -838,13 +896,13 @@ const MonthlyReportPanel = () => {
           </div>
 
           {/* Daily Chart */}
-          <SectionCard title="📈 الإيرادات والمصروفات اليومية">
+          <SectionCard title="الإيرادات والمصروفات اليومية">
             <DailyChart data={report.dailyChart} />
           </SectionCard>
 
           {/* Income & Expense */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-            <SectionCard title="💰 مصادر الإيرادات">
+            <SectionCard title="مصادر الإيرادات">
               {Object.keys(report.incomeByCategory).length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد إيرادات</div>
               ) : (
@@ -861,7 +919,7 @@ const MonthlyReportPanel = () => {
                 </table>
               )}
             </SectionCard>
-            <SectionCard title="💸 تفصيل المصروفات">
+            <SectionCard title="تفصيل المصروفات">
               {Object.keys(report.expenseByCategory).length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد مصروفات</div>
               ) : (
@@ -882,7 +940,7 @@ const MonthlyReportPanel = () => {
 
           {/* Top Payers + Sub breakdown */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-            <SectionCard title="🏆 أعلى 5 أعضاء دفعاً">
+            <SectionCard title="أعلى 5 أعضاء دفعاً">
               {!report.topPayers || report.topPayers.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>لا توجد بيانات</div>
               ) : (
@@ -891,7 +949,7 @@ const MonthlyReportPanel = () => {
                   <tbody>
                     {report.topPayers.map((p: any, i: number) => (
                       <tr key={i}>
-                        <td>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}</td>
+                        <td>{i + 1}</td>
                         <td style={{ fontWeight: 'bold' }}>{p.name}</td>
                         <td style={{ color: 'var(--success)', fontWeight: 'bold' }}>{p.total.toLocaleString()} ج.م</td>
                       </tr>
@@ -900,7 +958,7 @@ const MonthlyReportPanel = () => {
                 </table>
               )}
             </SectionCard>
-            <SectionCard title="📋 حالة الاشتراكات">
+            <SectionCard title="حالة الاشتراكات">
               <div style={{ marginBottom: '10px', fontSize: '13px' }}>
                 إيراد الاشتراكات: <strong style={{ color: 'var(--success)' }}>{report.subscriptions.revenue.toLocaleString()} ج.م</strong>
               </div>
@@ -923,7 +981,7 @@ const MonthlyReportPanel = () => {
           </div>
 
           {/* Coach Salaries */}
-          <SectionCard title="👤 رواتب الكباتن">
+          <SectionCard title="رواتب الكباتن">
             <div style={{ display: 'flex', gap: '24px', marginBottom: '14px', flexWrap: 'wrap', fontSize: '13px' }}>
               <span>المستحق: <strong style={{ color: 'var(--warning)' }}>{report.coachSalaries.totalDue.toLocaleString()} ج.م</strong></span>
               <span>المدفوع: <strong style={{ color: 'var(--success)' }}>{report.coachSalaries.totalPaid.toLocaleString()} ج.م</strong></span>
@@ -953,7 +1011,7 @@ const MonthlyReportPanel = () => {
 
           {/* New Members */}
           {report.members.newCount > 0 && (
-            <SectionCard title={`🆕 الأعضاء الجدد (${report.members.newCount})`}>
+            <SectionCard title={`الأعضاء الجدد (${report.members.newCount})`}>
               <div className="table-container">
                 <table className="data-table">
                   <thead><tr><th>الاسم</th><th>الهاتف</th><th>تاريخ التسجيل</th></tr></thead>
@@ -973,7 +1031,7 @@ const MonthlyReportPanel = () => {
 
           {/* Subscriptions List */}
           {report.subscriptions.list.length > 0 && (
-            <SectionCard title={`📝 الاشتراكات المسجلة (${report.subscriptions.count})`}>
+            <SectionCard title={`الاشتراكات المسجلة (${report.subscriptions.count})`}>
               <div className="table-container">
                 <table className="data-table">
                   <thead><tr><th>العضو</th><th>الخطة</th><th>من</th><th>إلى</th><th>المبلغ</th><th>الحالة</th></tr></thead>
@@ -1008,16 +1066,50 @@ const Reports = () => {
       <div className="page-header">
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            className={activeTab === 'daily' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('daily')}
+            style={{
+              background: activeTab === 'daily'
+                ? 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.12))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))',
+              color: activeTab === 'daily' ? '#fbbf24' : 'var(--text-muted)',
+              border: activeTab === 'daily' ? '1px solid rgba(245,158,11,0.45)' : '1px solid var(--border-color)',
+              borderRadius: '10px',
+              padding: '9px 18px',
+              fontWeight: 600,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'daily' ? '0 2px 12px rgba(245,158,11,0.2)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
           >
-            📅 تقرير يومي
+            <CalendarDaysIcon style={{ width: '16px', height: '16px' }} />
+            تقرير يومي
           </button>
           <button
-            className={activeTab === 'monthly' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('monthly')}
+            style={{
+              background: activeTab === 'monthly'
+                ? 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(99,102,241,0.12))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))',
+              color: activeTab === 'monthly' ? '#818cf8' : 'var(--text-muted)',
+              border: activeTab === 'monthly' ? '1px solid rgba(99,102,241,0.45)' : '1px solid var(--border-color)',
+              borderRadius: '10px',
+              padding: '9px 18px',
+              fontWeight: 600,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'monthly' ? '0 2px 12px rgba(99,102,241,0.2)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
           >
-            📊 تقرير شهري
+            <ChartBarSquareIcon style={{ width: '16px', height: '16px' }} />
+            تقرير شهري
           </button>
         </div>
         <h1>التقارير</h1>
