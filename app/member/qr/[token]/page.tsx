@@ -167,9 +167,9 @@ const PublicMemberQR = () => {
         background: 'linear-gradient(145deg, rgba(28,28,34,0.92) 0%, rgba(18,18,22,0.95) 100%)',
         border: '1px solid rgba(255, 87, 70, 0.25)',
         borderRadius: '24px',
-        padding: '36px 28px',
+        padding: '32px 20px',
         width: '100%',
-        maxWidth: '360px',
+        maxWidth: '380px',
         textAlign: 'center',
         backdropFilter: 'blur(20px)',
         boxShadow: '0 30px 90px rgba(0,0,0,0.8), 0 0 50px rgba(255,87,70,0.12)',
@@ -199,29 +199,17 @@ const PublicMemberQR = () => {
           </div>
         </div>
 
-        {/* QR Scanner Frame with Laser Line animation */}
+        {/* QR Frame without laser animation */}
         <div style={{
           position: 'relative',
           display: 'inline-block',
           padding: '16px',
           background: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '20px',
           marginBottom: '16px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+          boxShadow: '0 12px 35px rgba(0,0,0,0.55)',
           overflow: 'hidden'
         }}>
-          {/* Laser Scan Line */}
-          <div style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: 'linear-gradient(90deg, transparent 0%, #ff5746 50%, transparent 100%)',
-            boxShadow: '0 0 10px #ff5746, 0 0 20px #ff5746',
-            zIndex: 10,
-            animation: 'laserScan 2.2s ease-in-out infinite'
-          }} />
-
           {/* Corner highlights */}
           <span style={{ position: 'absolute', top: 0, right: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderRight: '4px solid #ff5746', borderRadius: '0 12px 0 0' }} />
           <span style={{ position: 'absolute', top: 0, left: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderLeft: '4px solid #ff5746', borderRadius: '12px 0 0 0' }} />
@@ -230,7 +218,7 @@ const PublicMemberQR = () => {
 
           <QRCodeCanvas
             value={member.qrToken}
-            size={240}
+            size={280}
             level="H"
             includeMargin={false}
             bgColor="#ffffff"
@@ -330,14 +318,6 @@ const PublicMemberQR = () => {
           ٣- ابعد الموبايل مسافة ١٠-٢٠ سم عن الجهاز
         </div>
       </div>
-
-      <style>{`
-        @keyframes laserScan {
-          0%   { top: 5%; opacity: 0.2; }
-          50%  { top: 90%; opacity: 1; }
-          100% { top: 5%; opacity: 0.2; }
-        }
-      `}</style>
     </div>
   );
 };
