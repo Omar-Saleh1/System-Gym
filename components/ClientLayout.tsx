@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
+import GlobalQRScannerListener from './GlobalQRScannerListener';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { cashier, loading, isAuthenticated } = useAuth();
@@ -40,6 +41,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="app-container">
+      <GlobalQRScannerListener />
       <div className="app-content">{children}</div>
       {cashier && <Sidebar />}
     </div>
