@@ -110,10 +110,17 @@ export default function GlobalQRScannerListener() {
   const lastKeyTimeRef = useRef<number>(0);
   const isProcessingRef = useRef<boolean>(false);
 
+  const lastScanTimestampRef = useRef<number>(0);
+
   const processScan = useCallback(async (scannedText: string) => {
     const cleanToken = cleanScanCode(scannedText);
+    const now = Date.now();
+    
+    // Ignore empty/short or duplicate scans within 3 seconds
     if (!cleanToken || cleanToken.length < 4 || isProcessingRef.current) return;
+    if (now - lastScanTimestampRef.current < 3000) return;
 
+    lastScanTimestampRef.current = now;
     isProcessingRef.current = true;
 
     try {
@@ -170,11 +177,6 @@ export default function GlobalQRScannerListener() {
         return;
       }
 
-      const activeEl = document.activeElement;
-      const isTypingInInput =
-        activeEl &&
-        (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || (activeEl as HTMLElement).isContentEditable);
-
       // Barcode scanners send keys very rapidly (< 50ms interval)
       if (timeDiff > 250) {
         // Human pause or new input sequence -> reset buffer
@@ -183,14 +185,10 @@ export default function GlobalQRScannerListener() {
 
       if (e.key === 'Enter') {
         const buffered = bufferRef.current.trim();
-        // A typical QR token is >= 6 chars
+        bufferRef.current = '';
         if (buffered.length >= 6) {
-          // If typed in an input very fast or not focused in any input
           e.preventDefault();
-          bufferRef.current = '';
           processScan(buffered);
-        } else {
-          bufferRef.current = '';
         }
         return;
       }
@@ -198,14 +196,6 @@ export default function GlobalQRScannerListener() {
       // Collect printable characters
       if (e.key.length === 1) {
         bufferRef.current += e.key;
-
-        // Auto-detect fast scanner burst (> 12 chars in < 250ms)
-        if (!isTypingInInput && bufferRef.current.length >= 24) {
-          // Some scanners don't send Enter or send fast strings
-          const toProcess = bufferRef.current;
-          bufferRef.current = '';
-          processScan(toProcess);
-        }
       }
     };
 
