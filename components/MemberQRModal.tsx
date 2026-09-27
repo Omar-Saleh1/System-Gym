@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../lib/axios';
-import { XMarkIcon, PrinterIcon, ArrowPathIcon, NoSymbolIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PrinterIcon, ArrowPathIcon, NoSymbolIcon, CheckCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 interface MemberQRModalProps {
   member: {
@@ -18,6 +18,8 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [isQrActive, setIsQrActive] = useState<boolean>(member.isQrActive !== false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sendingWa, setSendingWa] = useState<boolean>(false);
+  const [waSuccess, setWaSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,6 +81,21 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
     }
   };
 
+  const handleSendWhatsApp = async () => {
+    try {
+      setSendingWa(true);
+      setWaSuccess(null);
+      setError(null);
+      const { data } = await api.post(`/members/${member._id}/send-qr-whatsapp`);
+      setWaSuccess(data.message || 'تم إرسال رابط الـ QR بالواتساب بنجاح');
+      setTimeout(() => setWaSuccess(null), 4000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'فشل إرسال رسالة الواتساب، يرجى التأكد من اتصال السيرفر');
+    } finally {
+      setSendingWa(false);
+    }
+  };
+
   const handlePrint = () => {
     const printContents = document.getElementById('qr-print-area')?.innerHTML;
     if (!printContents) return;
@@ -133,8 +150,34 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
           </div>
         </div>
 
+        {waSuccess && (
+          <div style={{ color: '#22c55e', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>
+            {waSuccess}
+          </div>
+        )}
+
         <div className="qr-modal-actions" style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              className="btn-small"
+              onClick={handleSendWhatsApp}
+              disabled={sendingWa || !isQrActive}
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.22), rgba(34,197,94,0.1))',
+                color: '#4ade80',
+                border: '1px solid rgba(34,197,94,0.4)',
+                fontWeight: 600,
+                borderRadius: '8px',
+                padding: '7px 14px',
+                cursor: sendingWa ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <ChatBubbleLeftRightIcon style={{ width: 18, height: 18 }} />
+              {sendingWa ? 'جاري الإرسال...' : 'إرسال بالواتساب'}
+            </button>
             <button className="btn-small" onClick={handlePrint} disabled={!isQrActive || !qrCodeData}>
               <PrinterIcon style={{ width: 18, height: 18, marginRight: 6 }} /> طباعة
             </button>
