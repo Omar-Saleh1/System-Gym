@@ -1,4 +1,15 @@
-// Arabic keyboard map to English QWERTY (used when scanner is in Arabic input mode)
+/**
+ * Returns today's date as YYYY-MM-DD in the LOCAL browser timezone.
+ * ⚠️ Do NOT use new Date().toISOString().split('T')[0] — that returns UTC date
+ * which can be ±1 day off from the local date (e.g. Egypt UTC+2, US UTC-7).
+ */
+export const getLocalDateString = (date: Date = new Date()): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 const ARABIC_KEY_MAP: Record<string, string> = {
   'ض': 'q', 'ص': 'w', 'ث': 'e', 'ق': 'r', 'ف': 't', 'غ': 'y', 'ع': 'u', 'ه': 'i', 'خ': 'o', 'ح': 'p', 'ج': '[', 'د': ']',
   'ش': 'a', 'س': 's', 'ي': 'd', 'ب': 'f', 'ل': 'g', 'ا': 'h', 'ت': 'j', 'ن': 'k', 'م': 'l', 'ك': ';', 'ط': "'",

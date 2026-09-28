@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import { useFastQuery } from '../../lib/swr';
-import { cleanScanCode } from '../../lib/qrUtils';
+import { cleanScanCode, getLocalDateString } from '../../lib/qrUtils';
 import CameraQRScanner from '../../components/CameraQRScanner';
 import ConfirmModal from '../../components/ConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
@@ -18,7 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Attendance = () => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const { data: recData, mutate: mutateRec } = useFastQuery(`/attendance?date=${today}`);
   const { data: memData, mutate: mutateMem } = useFastQuery('/members');
   const { data: visitData, mutate: mutateVisit } = useFastQuery('/single-visits?date=today');

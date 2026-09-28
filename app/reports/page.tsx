@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
+import { getLocalDateString } from '../../lib/qrUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
   BanknotesIcon,
@@ -153,7 +154,7 @@ import { useAuth } from '../../context/AuthContext';
 // ─── Daily Report Panel ───────────────────────────────────────────────────────
 const DailyReportPanel = () => {
   const { cashier } = useAuth();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const [date, setDate] = useState(todayStr);
   const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
   const [report, setReport] = useState<any>(null);

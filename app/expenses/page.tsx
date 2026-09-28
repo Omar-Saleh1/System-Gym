@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import api from '../../lib/axios';
 import { useFastQuery } from '../../lib/swr';
+import { getLocalDateString } from '../../lib/qrUtils';
 import { useAuth } from '../../context/AuthContext';
 import ConfirmModal from '../../components/ConfirmModal';
 import { 
@@ -17,6 +18,7 @@ import {
 
 const Expenses = () => {
   const { cashier } = useAuth();
+  const todayStr = getLocalDateString();
   const [shiftFilter, setShiftFilter] = useState(cashier?.shiftType || '');
   const expKey = shiftFilter ? `/expenses?shiftType=${shiftFilter}` : '/expenses';
   const { data: expRes, mutate: mutateExpenses } = useFastQuery(expKey);

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import api from '../../lib/axios';
 import { useFastQuery, mutate } from '../../lib/swr';
+import { getLocalDateString } from '../../lib/qrUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -15,7 +16,7 @@ import {
 const Subscriptions = () => {
   const { cashier } = useAuth();
   const isAdmin = cashier?.role === 'admin' || cashier?.shiftType === 'BOYS';
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   const { data: subsData, mutate: mutateSubs } = useFastQuery('/subscriptions');
   const { data: plansData, mutate: mutatePlans } = useFastQuery('/subscriptions/plans');
