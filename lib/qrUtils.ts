@@ -19,6 +19,7 @@ const ARABIC_KEY_MAP: Record<string, string> = {
 /**
  * Cleans a raw QR scan value:
  * - Strips full URLs (e.g. https://domain.com/member/qr/TOKEN → TOKEN)
+ * - Decodes numeric ASCII character sequences sent by hardware scanners (e.g. 068098077... → DbMIIHWxrBDp)
  * - Converts Arabic keyboard characters to their English equivalents
  */
 export const cleanScanCode = (code: string): string => {
@@ -30,6 +31,22 @@ export const cleanScanCode = (code: string): string => {
   } else if (str.startsWith('http://') || str.startsWith('https://')) {
     str = str.split('/').pop()?.split('?')[0].split('#')[0].trim() || str;
   }
+
+  // Convert numeric ASCII sequence if sent by hardware scanner
+  if (/^(\d{3})+$/.test(str) && str.length >= 12 && str.length % 3 === 0) {
+    let decoded = '';
+    for (let i = 0; i < str.length; i += 3) {
+      const charCode = parseInt(str.substring(i, i + 3), 10);
+      if (charCode >= 32 && charCode <= 126) {
+        decoded += String.fromCharCode(charCode);
+      } else {
+        decoded = '';
+        break;
+      }
+    }
+    if (decoded) str = decoded;
+  }
+
   // Convert Arabic letters to English equivalents
   let converted = '';
   for (const ch of str) {
