@@ -74,10 +74,20 @@ const Subscriptions = () => {
   const executeSubscribe = async () => {
     setConfirmOpen(false);
     try {
-      await api.post('/subscriptions', { memberId: form.memberId, planId: form.planId, pricePaid: Number(form.pricePaid), paidAmount: Number(form.paidAmount), paymentMethod: form.paymentMethod, notes: form.notes, startDate: form.startDate });
+      const { data } = await api.post('/subscriptions', { memberId: form.memberId, planId: form.planId, pricePaid: Number(form.pricePaid), paidAmount: Number(form.paidAmount), paymentMethod: form.paymentMethod, notes: form.notes, startDate: form.startDate });
       setForm({ memberId: '', planId: '', pricePaid: '', paidAmount: '', paymentMethod: 'CASH', notes: '', startDate: todayStr });
       setShowForm(false);
       loadAll();
+      // إرسال إشعار واتساب بعد تسجيل الاشتراك الجديد
+      try {
+        const memberId = form.memberId;
+        const subId = data?.subscription?._id || data?._id;
+        await api.post(`/members/${memberId}/send-subscription-whatsapp`, {
+          subscriptionId: subId,
+        });
+      } catch {
+        // الواتساب اختياري — لو السيرفر مش عنده الـ endpoint مش هيأثر على الاشتراك
+      }
     } catch (err: any) { setErrorMessage(err.response?.data?.message || 'حدث خطأ أثناء الاشتراك'); }
   };
 

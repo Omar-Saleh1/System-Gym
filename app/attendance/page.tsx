@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import { useFastQuery } from '../../lib/swr';
+import { cleanScanCode } from '../../lib/qrUtils';
 import CameraQRScanner from '../../components/CameraQRScanner';
 import ConfirmModal from '../../components/ConfirmModal';
 import SingleVisitModal from '../../components/SingleVisitModal';
@@ -69,10 +70,18 @@ const Attendance = () => {
   const handleManualCheckin = async () => {
     if (!selectedMember) return;
     try {
-      await api.post('/attendance/checkin', { memberId: selectedMember });
+      const { data } = await api.post('/attendance/checkin', { memberId: selectedMember });
       setMessage('✅ تم تسجيل الحضور بنجاح');
       setSelectedMember('');
       loadData();
+      // إرسال إشعار واتساب بعد تسجيل الحضور اليدوي
+      try {
+        await api.post(`/members/${selectedMember}/send-checkin-whatsapp`, {
+          attendanceId: data?.attendance?._id || data?._id,
+        });
+      } catch {
+        // الواتساب اختياري — لو السيرفر مش عنده الـ endpoint مش هيأثر على الحضور
+      }
     } catch (err: any) {
       setMessage(err.response?.data?.message || '❌ فشل تسجيل الحضور');
     }
@@ -108,7 +117,8 @@ const Attendance = () => {
 
   const handleScanSubmit = async (e: any) => {
     e.preventDefault();
-    const code = scanValue.trim();
+    // تنظيف الكود — يحذف URL ويحوّل الحروف العربية لو الكيبورد عربي
+    const code = cleanScanCode(scanValue.trim());
     setScanValue('');
     if (!code) return;
 
@@ -132,7 +142,8 @@ const Attendance = () => {
 
   const handleCameraScan = async (decodedText: string) => {
     setShowCamera(false);
-    const code = decodedText.trim();
+    // تنظيف الكود من URL أو حروف عربية
+    const code = cleanScanCode(decodedText.trim());
     if (!code) return;
     try {
       const { data } = await api.post('/attendance/scan', { qrToken: code });

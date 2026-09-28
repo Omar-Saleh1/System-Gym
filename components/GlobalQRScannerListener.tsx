@@ -3,31 +3,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../lib/axios';
 import { invalidateData } from '../lib/swr';
+import { cleanScanCode } from '../lib/qrUtils';
 import { CheckCircleIcon, ExclamationCircleIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
-
-// Arabic keyboard map to English QWERTY
-const ARABIC_KEY_MAP: Record<string, string> = {
-  'ض': 'q', 'ص': 'w', 'ث': 'e', 'ق': 'r', 'ف': 't', 'غ': 'y', 'ع': 'u', 'ه': 'i', 'خ': 'o', 'ح': 'p', 'ج': '[', 'د': ']',
-  'ش': 'a', 'س': 's', 'ي': 'd', 'ب': 'f', 'ل': 'g', 'ا': 'h', 'ت': 'j', 'ن': 'k', 'م': 'l', 'ك': ';', 'ط': "'",
-  'ئ': 'z', 'ء': 'x', 'ؤ': 'c', 'ر': 'v', 'لا': 'b', 'ى': 'n', 'ة': 'm', 'و': ',', 'ز': '.', 'ظ': '/',
-};
-
-const cleanScanCode = (code: string): string => {
-  let str = code.trim();
-  // Strip URL if scanner read full URL
-  if (str.includes('/qr/')) {
-    const after = str.split('/qr/').pop() || '';
-    str = after.split('?')[0].split('#')[0].trim();
-  } else if (str.startsWith('http://') || str.startsWith('https://')) {
-    str = str.split('/').pop()?.split('?')[0].split('#')[0].trim() || str;
-  }
-  // Convert Arabic letters
-  let converted = '';
-  for (const ch of str) {
-    converted += ARABIC_KEY_MAP[ch] || ch;
-  }
-  return converted.trim() || str;
-};
 
 // Web Audio API chimes (instant & offline, no files needed)
 const playSound = (type: 'success' | 'warning' | 'error') => {
