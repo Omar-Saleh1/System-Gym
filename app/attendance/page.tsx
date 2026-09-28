@@ -61,9 +61,9 @@ const Attendance = () => {
   };
 
   const loadData = async () => {
-    mutateRec();
-    mutateMem();
-    mutateVisit();
+    mutateRec(undefined, { revalidate: true });
+    mutateMem(undefined, { revalidate: true });
+    mutateVisit(undefined, { revalidate: true });
   };
 
   // Keep scan input always focused — scanner acts as keyboard

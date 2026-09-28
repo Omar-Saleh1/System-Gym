@@ -44,7 +44,7 @@ export const prefetchData = (url: string) => {
  */
 export const invalidateData = (keyOrPattern: string | RegExp) => {
   if (typeof keyOrPattern === 'string') {
-    mutate(keyOrPattern);
+    mutate(keyOrPattern, undefined, { revalidate: true });
   } else {
     mutate(
       (key) => typeof key === 'string' && keyOrPattern.test(key),
