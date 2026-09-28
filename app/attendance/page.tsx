@@ -23,9 +23,21 @@ const Attendance = () => {
   const { data: memData, mutate: mutateMem } = useFastQuery('/members');
   const { data: visitData, mutate: mutateVisit } = useFastQuery('/single-visits?date=today');
 
-  const records: any[] = Array.isArray(recData) ? recData : [];
+  const rawRecords: any[] = Array.isArray(recData) ? recData : [];
+  const records: any[] = [...rawRecords].sort((a, b) => {
+    const tA = new Date(a.checkInTime || a.createdAt || 0).getTime();
+    const tB = new Date(b.checkInTime || b.createdAt || 0).getTime();
+    return tB - tA;
+  });
+
   const members: any[] = Array.isArray(memData) ? memData.filter((m: any) => m.active) : [];
-  const singleVisits: any[] = Array.isArray(visitData?.data) ? visitData.data : [];
+
+  const rawVisits: any[] = Array.isArray(visitData?.data) ? visitData.data : [];
+  const singleVisits: any[] = [...rawVisits].sort((a, b) => {
+    const tA = new Date(a.visitedAt || a.createdAt || 0).getTime();
+    const tB = new Date(b.visitedAt || b.createdAt || 0).getTime();
+    return tB - tA;
+  });
 
   const [showSingleVisitModal, setShowSingleVisitModal] = useState(false);
   const [deleteVisitTarget, setDeleteVisitTarget] = useState<{ id: string; name: string } | null>(null);
