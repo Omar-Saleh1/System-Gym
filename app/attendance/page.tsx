@@ -25,8 +25,8 @@ const Attendance = () => {
 
   const rawRecords: any[] = Array.isArray(recData) ? recData : [];
   const records: any[] = [...rawRecords].sort((a, b) => {
-    const tA = new Date(a.checkInTime || a.createdAt || 0).getTime();
-    const tB = new Date(b.checkInTime || b.createdAt || 0).getTime();
+    const tA = new Date(a.checkInTime || a.checkIn || a.createdAt || 0).getTime();
+    const tB = new Date(b.checkInTime || b.checkIn || b.createdAt || 0).getTime();
     return tB - tA;
   });
 
@@ -424,11 +424,11 @@ const Attendance = () => {
                          r.member?.membershipStatus === 'Frozen' ? 'مجمد / Frozen' : 'منتهي / Expired'}
                       </span>
                     </td>
-                    <td>{formatTime(r.checkInTime)}</td>
-                    <td>{formatTime(r.checkOutTime)}</td>
+                    <td>{formatTime(r.checkInTime || r.checkIn)}</td>
+                    <td>{formatTime(r.checkOutTime || r.checkOut)}</td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
-                        {!r.checkOutTime && r.member && (
+                        {!(r.checkOutTime || r.checkOut) && r.member && (
                           <button className="btn-small" onClick={() => handleCheckout(r.member._id)}>تسجيل انصراف</button>
                         )}
                         <button
