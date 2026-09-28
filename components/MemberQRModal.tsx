@@ -21,6 +21,21 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
   const [sendingWa, setSendingWa] = useState<boolean>(false);
   const [waSuccess, setWaSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [waFallbackUrl, setWaFallbackUrl] = useState<string | null>(null);
+
+  // بناء رابط WhatsApp Web مباشر كبديل لما السيرفر ما يشتغلش
+  const buildWhatsAppFallback = () => {
+    const phone = member.phone?.replace(/\D/g, '') || '';
+    // تحويل الأرقام المصرية: 01x → 201x
+    const intlPhone = phone.startsWith('0') ? '2' + phone : phone.startsWith('20') ? phone : '20' + phone;
+    const memberUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/member/qr/${member._id}`
+      : '';
+    const message = encodeURIComponent(
+      `مرحباً ${member.name} 👋\n\nتم تسجيل اشتراكك في الجيم بنجاح ✅\n\nرابط بطاقة الـ QR الخاصة بك:\n${memberUrl}\n\nاستخدمها عند الدخول للجيم 🏋️`
+    );
+    return `https://wa.me/${intlPhone}?text=${message}`;
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -86,11 +101,14 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
       setSendingWa(true);
       setWaSuccess(null);
       setError(null);
+      setWaFallbackUrl(null);
       const { data } = await api.post(`/members/${member._id}/send-qr-whatsapp`);
       setWaSuccess(data.message || 'تم إرسال رابط الـ QR بالواتساب بنجاح');
       setTimeout(() => setWaSuccess(null), 4000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل إرسال رسالة الواتساب، يرجى التأكد من اتصال السيرفر');
+      setError(err.response?.data?.message || 'تعذر إرسال الرسالة تلقائياً');
+      // عند الفشل: ابني رابط واتساب ويب بديل للإرسال اليدوي
+      setWaFallbackUrl(buildWhatsAppFallback());
     } finally {
       setSendingWa(false);
     }
@@ -140,8 +158,6 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
           <div className="qr-modal-code-wrap">
             {loading ? (
               <p>جاري التحميل...</p>
-            ) : error ? (
-              <p style={{ color: 'red' }}>{error}</p>
             ) : !isQrActive ? (
               <p style={{ color: 'red' }}>الـ QR معطل لهذا العضو</p>
             ) : qrCodeData ? (
@@ -152,7 +168,40 @@ const MemberQRModal: React.FC<MemberQRModalProps> = ({ member, onClose }) => {
 
         {waSuccess && (
           <div style={{ color: '#22c55e', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>
-            {waSuccess}
+            ✅ {waSuccess}
+          </div>
+        )}
+
+        {/* خطأ الواتساب + زرار بديل يفتح واتساب ويب */}
+        {error && (
+          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '12px 14px', marginTop: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#f87171', fontSize: '13px', marginBottom: waFallbackUrl ? '10px' : 0 }}>
+              ⚠️ {error}
+            </div>
+            {waFallbackUrl && (
+              <a
+                href={waFallbackUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #25d366, #128c7e)',
+                  color: '#fff',
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 10px rgba(37,211,102,0.35)',
+                  marginTop: '4px',
+                }}
+              >
+                <ChatBubbleLeftRightIcon style={{ width: 17, height: 17 }} />
+                ابعت يدوي من واتساب ويب
+              </a>
+            )}
           </div>
         )}
 
