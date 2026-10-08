@@ -154,7 +154,7 @@ const MemberProfile = () => {
       {/* Attendance History */}
       {attendance?.recent?.length > 0 && (
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: '12px' }}>آخر 10 حضور</h3>
+          <h3 style={{ marginBottom: '12px' }}>سجل الحضور ({attendance.recent.length})</h3>
           <div className="table-container">
             <table className="data-table">
               <thead><tr><th>التاريخ</th><th>الدخول</th><th>الخروج</th><th>الطريقة</th></tr></thead>
