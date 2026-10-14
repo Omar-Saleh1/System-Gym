@@ -199,44 +199,67 @@ const PublicMemberQR = () => {
           </div>
         </div>
 
-        {/* QR Frame without laser animation */}
-        <div style={{
-          position: 'relative',
-          display: 'inline-block',
-          padding: '16px',
-          background: '#ffffff',
-          borderRadius: '20px',
-          marginBottom: '16px',
-          boxShadow: '0 12px 35px rgba(0,0,0,0.55)',
-          overflow: 'hidden'
-        }}>
-          {/* Corner highlights */}
-          <span style={{ position: 'absolute', top: 0, right: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderRight: '4px solid #ff5746', borderRadius: '0 12px 0 0' }} />
-          <span style={{ position: 'absolute', top: 0, left: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderLeft: '4px solid #ff5746', borderRadius: '12px 0 0 0' }} />
-          <span style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', borderBottom: '4px solid #ff5746', borderRight: '4px solid #ff5746', borderRadius: '0 0 12px 0' }} />
-          <span style={{ position: 'absolute', bottom: 0, left: 0, width: '22px', height: '22px', borderBottom: '4px solid #ff5746', borderLeft: '4px solid #ff5746', borderRadius: '0 0 0 12px' }} />
+        {/* QR Frame or Locked State */}
+        {member.membershipStatus === 'Active' && member.isQrActive !== false ? (
+          <>
+            <div style={{
+              position: 'relative',
+              display: 'inline-block',
+              padding: '16px',
+              background: '#ffffff',
+              borderRadius: '20px',
+              marginBottom: '16px',
+              boxShadow: '0 12px 35px rgba(0,0,0,0.55)',
+              overflow: 'hidden'
+            }}>
+              {/* Corner highlights */}
+              <span style={{ position: 'absolute', top: 0, right: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderRight: '4px solid #ff5746', borderRadius: '0 12px 0 0' }} />
+              <span style={{ position: 'absolute', top: 0, left: 0, width: '22px', height: '22px', borderTop: '4px solid #ff5746', borderLeft: '4px solid #ff5746', borderRadius: '12px 0 0 0' }} />
+              <span style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', borderBottom: '4px solid #ff5746', borderRight: '4px solid #ff5746', borderRadius: '0 0 12px 0' }} />
+              <span style={{ position: 'absolute', bottom: 0, left: 0, width: '22px', height: '22px', borderBottom: '4px solid #ff5746', borderLeft: '4px solid #ff5746', borderRadius: '0 0 0 12px' }} />
 
-          <QRCodeCanvas
-            value={member.qrToken}
-            size={280}
-            level="H"
-            includeMargin={false}
-            bgColor="#ffffff"
-            fgColor="#000000"
-          />
-        </div>
+              <QRCodeCanvas
+                value={member.qrToken}
+                size={280}
+                level="H"
+                includeMargin={false}
+                bgColor="#ffffff"
+                fgColor="#000000"
+              />
+            </div>
 
-        {/* Token string */}
-        <p style={{
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          letterSpacing: '1px',
-          fontFamily: 'monospace',
-          marginBottom: '16px',
-          wordBreak: 'break-all'
-        }}>
-          {member.qrToken}
-        </p>
+            {/* Token string */}
+            <p style={{
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '1px',
+              fontFamily: 'monospace',
+              marginBottom: '16px',
+              wordBreak: 'break-all'
+            }}>
+              {member.qrToken}
+            </p>
+          </>
+        ) : (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.08)',
+            border: '2px dashed rgba(239, 68, 68, 0.4)',
+            borderRadius: '20px',
+            padding: '36px 20px',
+            marginBottom: '20px',
+            marginTop: '10px'
+          }}>
+            <div style={{ fontSize: '56px', marginBottom: '14px' }}>🔒</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444', marginBottom: '8px' }}>
+              كود الدخول مغلق
+            </h3>
+            <p style={{ fontSize: '13px', color: '#d4d4d8', lineHeight: '1.6', margin: 0 }}>
+              {member.membershipStatus === 'Frozen'
+                ? 'الاشتراك مجمد حالياً. يرجى مراجعة إدارة الجيم لإلغاء التجميد.'
+                : 'انتهت صلاحية اشتراكك. يرجى التوجه لمكتب الاستقبال لتجديد الاشتراك لتفعيل كود الـ QR فوراً.'}
+            </p>
+          </div>
+        )}
 
         {/* Session / Expiry info */}
         {member.sessionInfo ? (
