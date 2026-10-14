@@ -1,9 +1,13 @@
 /**
- * Returns today's date as YYYY-MM-DD in the LOCAL browser timezone.
- * ⚠️ Do NOT use new Date().toISOString().split('T')[0] — that returns UTC date
- * which can be ±1 day off from the local date (e.g. Egypt UTC+2, US UTC-7).
+ * Returns today's business date as YYYY-MM-DD in the local timezone.
+ * Business day cutoff is 03:00 AM (gym closing time).
+ * Activity between 00:00 and 02:59 belongs to the previous day's shift.
  */
-export const getLocalDateString = (date: Date = new Date()): string => {
+export const getLocalDateString = (dateInput: Date = new Date()): string => {
+  const date = new Date(dateInput);
+  if (date.getHours() < 3) {
+    date.setDate(date.getDate() - 1);
+  }
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
