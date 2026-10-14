@@ -556,8 +556,7 @@ const Subscriptions = () => {
                   </td>
                 </tr>
               );
-            })}
-            {subscriptions.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center' }}>مفيش اشتراكات لسه</td></tr>}
+            }))}
           </tbody>
         </table>
       </div>
