@@ -11,6 +11,7 @@ import {
   FireIcon,
   PauseCircleIcon,
   PlayCircleIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
 const Subscriptions = () => {
@@ -28,6 +29,24 @@ const Subscriptions = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredSubscriptions = subscriptions.filter((s) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    const memberName = s.member?.name?.toLowerCase() || '';
+    const memberPhone = s.member?.phone || '';
+    const planName = s.plan?.name?.toLowerCase() || '';
+    return memberName.includes(q) || memberPhone.includes(q) || planName.includes(q);
+  });
+
+  const [memberSearch, setMemberSearch] = useState('');
+
+  const filteredFormMembers = members.filter((m) => {
+    if (!memberSearch.trim()) return true;
+    const q = memberSearch.trim().toLowerCase();
+    return (m.name?.toLowerCase() || '').includes(q) || (m.phone || '').includes(q);
+  });
   const [form, setForm] = useState({
     memberId: '',
     planId: '',
@@ -311,9 +330,16 @@ const Subscriptions = () => {
           <div className="form-row">
             <div>
               <label>العضو</label>
+              <input
+                type="text"
+                placeholder="ابحث بالاسم أو الموبايل لاختيار العضو..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                style={{ marginBottom: '6px', fontSize: '13px', padding: '8px 12px' }}
+              />
               <select value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })} required>
-                <option value="">اختر عضو</option>
-                {members.map((m) => <option key={m._id} value={m._id}>{m.name} - {m.phone}</option>)}
+                <option value="">اختر عضو ({filteredFormMembers.length})</option>
+                {filteredFormMembers.map((m) => <option key={m._id} value={m._id}>{m.name} - {m.phone}</option>)}
               </select>
             </div>
             <div>
@@ -355,6 +381,32 @@ const Subscriptions = () => {
         </form>
       )}
 
+      {/* Search Bar */}
+      <div className="search-box" style={{ marginBottom: '16px' }}>
+        <MagnifyingGlassIcon className="search-icon" style={{ width: '18px', height: '18px' }} />
+        <input
+          placeholder="ابحث بالاسم، رقم الموبايل، أو اسم الخطة..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontSize: '14px',
+              padding: '0 8px',
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -363,12 +415,19 @@ const Subscriptions = () => {
             </tr>
           </thead>
           <tbody>
-            {subscriptions.map((s) => {
-              const isSessions = s.subscriptionType === 'sessions';
-              const sessionsLeft = isSessions ? Math.max(0, (s.sessionsLimit || 0) - (s.sessionsUsed || 0)) : null;
-              const expired = isExpired(s);
-              return (
-                <tr key={s._id}>
+            {filteredSubscriptions.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                  {search ? `لا توجد اشتراكات مطابقة للبحث عن "${search}"` : 'لا توجد اشتراكات مسجلة'}
+                </td>
+              </tr>
+            ) : (
+              filteredSubscriptions.map((s) => {
+                const isSessions = s.subscriptionType === 'sessions';
+                const sessionsLeft = isSessions ? Math.max(0, (s.sessionsLimit || 0) - (s.sessionsUsed || 0)) : null;
+                const expired = isExpired(s);
+                return (
+                  <tr key={s._id}>
                   <td>{s.member?.name}</td>
                   <td>{s.plan?.name}</td>
                   <td>
