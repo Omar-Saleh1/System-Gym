@@ -130,10 +130,11 @@ export default function GlobalQRScannerListener() {
     } catch (err: any) {
       playSound('error');
       const msg = err.response?.data?.message || 'كود الـ QR غير صالح أو العضو غير موجود';
+      const isExpiredOrLocked = msg.includes('منتهي') || msg.includes('معطل') || msg.includes('مغلق') || msg.includes('استهلاك');
       setNotification({
         type: 'error',
         title: msg,
-        subtitle: 'يرجى مراجعة حالة الاشتراك أو المحاولة مجدداً'
+        subtitle: isExpiredOrLocked ? 'يرجى التوجه للاستقبال لتجديد الاشتراك' : 'يرجى مراجعة حالة الاشتراك أو المحاولة مجدداً'
       });
     } finally {
       isProcessingRef.current = false;

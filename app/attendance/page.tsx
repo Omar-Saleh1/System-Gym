@@ -143,7 +143,7 @@ const Attendance = () => {
       loadData();
     } catch (err: any) {
       const msg = err.response?.data?.message || '❌ Invalid QR Code';
-      if (msg.includes('⚠️') || msg.includes('Already Checked In') || msg.includes('مسجل')) {
+      if (msg.includes('Already Checked In') || msg.includes('مسجل حضور بالفعل') || msg.includes('مسجل اليوم')) {
         setScanResult({ type: 'checkout', text: msg });
       } else {
         setScanResult({ type: 'error', text: msg });
@@ -166,7 +166,8 @@ const Attendance = () => {
       loadData();
     } catch (err: any) {
       const msg = err.response?.data?.message || '❌ Invalid QR Code';
-      setScanResult({ type: msg.includes('⚠️') ? 'checkout' : 'error', text: msg });
+      const isDup = msg.includes('Already Checked In') || msg.includes('مسجل حضور بالفعل') || msg.includes('مسجل اليوم');
+      setScanResult({ type: isDup ? 'checkout' : 'error', text: msg });
     }
     setTimeout(() => setScanResult(null), 5000);
   };

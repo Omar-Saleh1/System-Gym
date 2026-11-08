@@ -147,7 +147,25 @@ const MemberProfile = () => {
         {/* Attendance */}
         <div style={cardStyle}>
           <h3 style={{ marginBottom: '16px', color: 'var(--primary)' }}>✅ الحضور</h3>
-          <div style={{ ...valueStyle, fontSize: '32px', color: 'var(--success)', marginBottom: '8px' }}>{attendance?.thisMonth || 0} <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>يوم هذا الشهر</span></div>
+          {subscription ? (
+            <div>
+              <div style={{ ...valueStyle, fontSize: '30px', color: 'var(--success)', marginBottom: '4px' }}>
+                {attendance?.currentSubscription !== undefined ? attendance.currentSubscription : (subscription.sessionsUsed || 0)}
+                {subscription.subscriptionType === 'sessions' && subscription.sessionsLimit > 0 ? (
+                  <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}> / {subscription.sessionsLimit} حصة</span>
+                ) : (
+                  <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}> يوم بالاشتراك الحالي</span>
+                )}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                {attendance?.thisMonth || 0} يوم في هذا الشهر الميلادي
+              </div>
+            </div>
+          ) : (
+            <div style={{ ...valueStyle, fontSize: '30px', color: 'var(--success)', marginBottom: '4px' }}>
+              {attendance?.thisMonth || 0} <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>يوم هذا الشهر</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -157,16 +175,34 @@ const MemberProfile = () => {
           <h3 style={{ marginBottom: '12px' }}>سجل الحضور ({attendance.recent.length})</h3>
           <div className="table-container">
             <table className="data-table">
-              <thead><tr><th>التاريخ</th><th>الدخول</th><th>الخروج</th><th>الطريقة</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>الدخول</th>
+                  <th>الخروج</th>
+                  <th>الاشتراك</th>
+                  <th>الطريقة</th>
+                </tr>
+              </thead>
               <tbody>
-                {attendance.recent.map((a: any) => (
-                  <tr key={a._id}>
-                    <td>{a.date}</td>
-                    <td>{new Date(a.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td>{a.checkOutTime ? new Date(a.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-                    <td>{a.method || 'QR'}</td>
-                  </tr>
-                ))}
+                {attendance.recent.map((a: any) => {
+                  const isCurrentSub = subscription?.startDate && new Date(a.checkInTime) >= new Date(subscription.startDate);
+                  return (
+                    <tr key={a._id} style={isCurrentSub ? { background: 'rgba(34, 197, 94, 0.05)' } : undefined}>
+                      <td>{a.date}</td>
+                      <td>{new Date(a.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>{a.checkOutTime ? new Date(a.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                      <td>
+                        {isCurrentSub ? (
+                          <span className="badge badge-success" style={{ fontSize: '11px', padding: '3px 8px' }}>الاشتراك الحالي</span>
+                        ) : (
+                          <span className="badge" style={{ fontSize: '11px', padding: '3px 8px', background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-muted)' }}>اشتراك سابق</span>
+                        )}
+                      </td>
+                      <td>{a.method || 'QR'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
